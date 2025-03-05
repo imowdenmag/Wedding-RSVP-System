@@ -1,0 +1,16 @@
+# Ignore environment files
+.env
+
+# Ignore Docker-related files
+.dockerignore
+
+# Ignore Google Cloud API credentials
+iamadinkra-ff3a4-b7ff7fb9d6ba.json
+*.json  # (Optional: Ignores all JSON files)
+
+# Ignore log files
+logs/
+*.log
+
+# Ignore Docker container volumes
+docker-volume/
