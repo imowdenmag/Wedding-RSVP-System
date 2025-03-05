@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "iamadinkra-ff3a4",
+  "private_key_id": "b7ff7fb9d6ba7eaac5d99a7a3095b3ea55ae7601",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCS24Dsa8ogO/za\nyGcBrVnvsE2UCqgaM/3dfe4YrudJ75zQt6LZIvcPvP+PWj1+ot4weKi+cX1P4g/i\njbG+oHGxtco8aSXw/DqV4C2NpxSRTwwX3ogZ9i2+2bAgXoM8h9a+l/b+mzfU/Qg9\nJ7Ei6REd4wp/9wxS7Urf7DGlv3eWYXBKLlKMwrYDDvBVuI+DIu1YMMkj/vGcP3xI\n7AzFLcYXbNDPIwKlJbixHHdFAK/3CnLYeizVohwmxBqbIKbiyOW7IQkJ+Az1pq0w\nc2T/ymTY/4ElU6wsjXWuxlxS+X6Eebc7t9wcoYWXsF1CXvj2RPtCJaKyKAkzDC3h\nMiMroGPbAgMBAAECggEAFAxg9Hr0nDju7c6M+AwlKn/G33ki9iIh5pfB+4mpFo1e\nZZn5jStk+gzjAJF2XVrjpU9bjgAqoM9WPCdRhsTFhgKwygAlcgQlBVVA3W/b8shi\no2w5kqhqb1MC5IWyjylmNh0YgYKeznX//BqhPTL/J2Au4fBP3474eUr32M5OMkUE\nacFZuphxM/xc82qDSVIEhjHRXHvyfLHKu3k56+Iaf11Kxkiomjy8RdZehB+EWmNg\nQ9SjbLO4nysyidFd+XHrw1Ng33ArDCcMTHdgKT+ufBTGFMEMbR3NJFvR/Jcz4OV3\nfCor5KYZpdcasYLj5CwEAdTm4LbI+Q126G86oHwm7QKBgQDKlLd7F8NN85Hv9ZEm\nsZV5N0CXxiIWZN6oMW3B5lVGtQ/uc7E+5QchrxNkAJ0MxRZvqRi+xkLRUyRGGVS3\nRZK+k4+5PBBTaGScW2DhHJcghMPorGa4apffnLT69McOr2JiVqSZIamM5qDwxabK\njb9MrNmo4j3vGUC1CnRY0mPm5wKBgQC5lSgmdxOpOtEVf6iOKy9i8elo6600xveM\nG2LNfOVy18jEcIx6hGrW+Kajui4u9KH5JTdNt5KHnn/CDQcZrTC9MlJ+pSJzGdtw\nrXFD20TwR2qFljBO0ynvzECI9kbpIbGfpz8f25DHKw5eb0YELEsiOCma5KeR/bjW\nFCgBtGtg7QKBgQChAK0KgYpRS8GyyqJ/9Cdt3UHS3j99ONHVLuOidWNU/NYal4xJ\nBlEyrihlFC+9VG5OdEAcbwnvv3pW1A8GUZ8dI73YZCo9f/xmYCGRB938lEf3hf1l\nmCH4MF2ODjieLTmuGlpa8ewE9c73TL8QwLNHRyD+HkFG4/UPba2mYh/QBQKBgHRu\nlSMU4DvzT8xaLEkN5QwB1DvkaOXM0vCPGfzsGBRmN2qvZiNTwqgeloXwQBtrldd3\nNuxGeOMnWOZJQCQm2YZJ9SHJvwRRu7BE0OQOxICvfbBUGvjJWO0+y1pikPihEAyn\nZF47ZejfJYOv8lCZ7YWJkOjB/jQE6Bs/yB3RsPC9AoGBALI3f3dJbGsnBSUctw4D\nz0T0wjnsFHkz8CM64Goe3UnqLfI5CUAjNyvEIGksaf7XM58paMMGnIezDs3aIflN\nkgvGU4zYNexMP3WqyMolvUaCWTFnBfTmBSH3i72Kl3xoEW3KYrt525Q6/TaH3l/W\nYVAAeYArgFnSXEE0bHzxcx6j\n-----END PRIVATE KEY-----\n",
+  "client_email": "wedding-rsvp@iamadinkra-ff3a4.iam.gserviceaccount.com",
+  "client_id": "103017536564817043463",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/wedding-rsvp%40iamadinkra-ff3a4.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

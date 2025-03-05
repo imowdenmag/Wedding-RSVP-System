@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&O Wedding Rsvp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Beau+Rivage&family=Bilbo+Swash+Caps&family=Monsieur+La+Doulaise&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rsvp.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='images/JO FAVICON 2.png') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <img src="{{ url_for('static', filename='images/jo logo white.png') }}" alt="Wedding Logo" class="logo">
+            <p class="custom-text">Your invitation admits you only. The invitation is non-transferable.</p>
+            <form id="rsvpForm">
+                <div class="form-group">
+                    <label for="code" class="form-label">Enter Your Guest Code:</label>
+                    <input type="text" id="code" name="code" class="form-input" placeholder="Find Guest Code beneath QR Code on Access Card" required>
+                </div>
+                <p class="custom-text2">Kindly bring along your access card for seating.</p>
+                <button type="submit" class="submit-button">Proceed</button>
+            </form>
+            <div id="responseMessage" class="response-message"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('rsvpForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const code = document.getElementById('code').value;
+
+            fetch('/check-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: code }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    //Redirect to the confirmation page  with page  guest details
+                    window.location.href = data.redirect_url;
+                } else {
+                    document.getElementById('responseMessage').textContent = 'Code not found. Please try again.';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+
+</body>
+</html>

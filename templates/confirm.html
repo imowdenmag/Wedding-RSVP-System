@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&O Wedding RSVP - Confirm Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/confirm.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/JO FAVICON 2.png') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1 class="form-title"></h1>
+            <img src="static/images/jo logo white.png" alt="J&O Wedding">
+
+            <!-- Guest Details -->
+            <div class="guest-details">
+                <p class="guest-name"><span id="guestName">{{guest_name}}</span></p>
+                <p> Kindly confirm your attendance.</p>
+                <p>________________________</p>
+            </div>
+            <div class="spacer1"></div>
+
+            <!-- Wedding Info -->
+            <div class="wedding-info">
+                <p>3 Maseru Avenue, East Legon, Accra</p>
+                <p>On Saturday, 3rd May 2025</p>
+                <p>At 2 o'clock in the Afternoon</p>
+                <div class="spacer">
+                    <p>________________________________</p>
+                </div>
+                <div class="spacer2">
+                    <p><strong>Dress Code:</strong>  Traditional Attire / Kente</p>
+                </div>
+            </div>
+
+            <!-- Confirmation Form -->
+            <form id="confirmForm">
+                <input type="hidden" id="code" name="code" value="{{ code }}">
+                <input type="hidden" id="attendance" name="attendance" value="">
+
+                <div class="form-group">
+                    <div class="button-checkbox-group">
+                        <button type="button" class="btn-checkbox" data-value="Confirmed">Yes, with pleasure</button>
+                        <button type="button" class="btn-checkbox" data-value="Declined">No, with sincere apologies</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-button">Confirm</button>
+                
+            </form>
+            <div id="responseMessage" class="response-message"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const buttons = document.querySelectorAll(".btn-checkbox");
+            const attendanceInput = document.getElementById("attendance");
+
+            buttons.forEach(button => {
+                button.addEventListener("click", function () {
+                    // Reset styles for all buttons
+                    buttons.forEach(btn => btn.classList.remove("selected"));
+                    
+                    // Set the attendance value and highlight selected button
+                    attendanceInput.value = this.dataset.value;
+                    this.classList.add("selected");
+                });
+            });
+
+            // Handle form submission
+            document.getElementById("confirmForm").addEventListener("submit", function (e) {
+                e.preventDefault();
+                const code = document.getElementById("code").value;
+                const attendance = attendanceInput.value;
+
+                if (!attendance) {
+                    alert("Please select an option (Yes or No).");
+                    return;
+                }
+
+                // Submit form data
+                const formData = new FormData();
+                formData.append("code", code);
+                formData.append("attendance", attendance);
+
+                fetch("/confirm-attendance", {
+                    method: "POST",
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        window.location.href = attendance === "Confirmed" ? "/confirmed" : "/declined";
+                    } else {
+                        alert("Error updating attendance. Please try again.");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+    </script>
+</body>
+</html>

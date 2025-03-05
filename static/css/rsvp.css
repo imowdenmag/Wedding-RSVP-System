@@ -1,0 +1,151 @@
+@font-face {
+  font-family: 'RB Magnat Neue Text Test';
+  src: url('/static/fonts/RBMagnatNeueText-SemiBold.woff2') format('woff2'),
+      url('/static/fonts/RBMagnatNeueText-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* General Styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'RB Magnat Neue Text Test';
+  background-color: #f7e5d6; /* Background color */
+  background-image: url('/static/images/J&O\ Wedding\ New\ Invite\ pattern.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Container for the form */
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.custom-text {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 20px;
+  font-style: italic;
+}
+
+.custom-text2 {
+  display: flex;
+  position: relative;
+  top: 0px;
+  bottom: 30px;
+  text-align: center;
+  margin-top: 2px;
+  color: rgb(255, 255, 255);
+  font-size: 15px;
+  font-style: italic;
+}
+
+/* Form container */
+.form-container {
+  position: relative; /* Required for absolute positioning of the button */
+  background-color: #b58159; /* Form background color */
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Logo image */
+img {
+  width: 300px;
+  height: 300px;
+  margin-bottom: 20px;
+}
+
+/* Form title */
+.form-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+/* Form group (label + input) */
+.form-group {
+  margin-bottom: 20px;
+  padding: auto;
+  text-align: center;
+}
+
+/* Form label */
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+/* Form input */
+.form-input {
+  display: flex;
+  width: 315px;
+  height: 16px;
+  margin-bottom: 20px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 40px;
+  font-size: 14px;
+  font-family: 'RB Magnat Neue Text Test';
+  font-size: small;
+  color: #333;
+  background-color: #fff;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  border-color: #bb6a3b; /* Button color for focus state */
+}
+
+/* Submit button */
+.submit-button {
+  position: absolute;
+  bottom: 20px;
+  right: 40px;
+  font-family: 'RB Magnat Neue Text Test', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #bb6a3b;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover Effect */
+.submit-button:hover {
+  background-color: #a55a2f;
+}
+
+/* Form Container - Adjusted for button positioning */
+.form-container {
+  position: relative; /* Needed for absolute positioning of the button */
+  padding-bottom: 60px; /* Extra space to prevent overlap */
+}
+
+
+/* Response message */
+.response-message {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #fff;
+}

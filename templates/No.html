@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&O Wedding Rsvp - Declined</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/No.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/JO FAVICON 2.png') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1 class="form-title"></h1>
+            <img src="{{ url_for('static', filename='images/jo logo white.png') }}" alt="">
+
+            <!-- Guest Details Section -->
+            <div class="guest-details">
+                <h1><strong>Thank you! </strong></h1>
+                <p>We will miss your presence</p>
+                <p>________________________________</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+                        window.location.href = "/";
+                    }, 7000);
+    </script>
+</body>
+</html>

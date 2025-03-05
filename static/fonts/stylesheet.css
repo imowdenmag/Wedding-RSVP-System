@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Film Storia';
+    src: url('static/fonts/FilmStoriaBold.woff2') format('woff2'),
+        url('static/fonts/FilmStoriaBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+

@@ -1,0 +1,74 @@
+@font-face {
+    font-family: 'RB Magnat Neue Text Test';
+    src: url('/static/fonts/RBMagnatNeueText-SemiBold.woff2') format('woff2'),
+        url('/static/fonts/RBMagnatNeueText-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* General Styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'RB Magnat Neue Text Test';
+    background-color: #f7e5d6; /* Background color */
+    background-image: url('/static/images/J&O\ Wedding\ New\ Invite\ pattern.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container for the form */
+.container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+/* Form container */
+.form-container {
+    background-color: #b58159; /* Form background color */
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Form title */
+.form-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+img{
+    width: 100px;
+    height: 100px;;
+}
+
+/* Guest Details Section */
+.guest-details {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.guest-details p {
+    margin: 10px;
+    font-size: large;
+}
+
+.guest-details strong {
+    font-weight: 500;
+}
+
+

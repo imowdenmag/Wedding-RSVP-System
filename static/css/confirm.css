@@ -1,0 +1,153 @@
+@font-face {
+    font-family: 'RB Magnat Neue Text Test';
+    src: url('/static/fonts/RBMagnatNeueText-SemiBold.woff2') format('woff2'),
+        url('/static/fonts/RBMagnatNeueText-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+  
+/* General Styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'RB Magnat Neue Text Test';
+    background-color: #f7e5d6;
+    background-image: url('/static/images/J&O\ Wedding\ New\ Invite\ pattern.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container */
+.container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+/* Form container */
+.form-container {
+    background-color: #b58159;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Form title */
+.form-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+/* Logo */
+img {
+    width: 100px;
+    height: 100px;
+}
+
+.guest-name {
+    font-weight: 30px; /* Adjust size as needed */
+    color: #fff; /* Keep it matching the theme */
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Guest Details */
+.guest-details, .wedding-info {
+    text-align: center;
+    color: #fff;
+    font-size: 12px;
+}
+
+.guest-details p, .wedding-info p {
+    margin: 7px;
+    font-size: large;
+}
+
+.button-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+    align-items: center;
+}
+
+.btn-checkbox {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    background-color: transparent;
+    border: 2px solid white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    text-align: center;
+    width: 250px;
+}
+
+.btn-checkbox:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-checkbox.selected {
+    background-color: #bb6a3b; /* Gold color */
+    font-family: 'RB Magnat Neue Text Test';
+    color: white;
+    border-color: wheat;
+}
+
+.custom-text2 {
+    display: flex;
+    position: relative;
+    top: 10px;
+    bottom: 30px;
+    left: 20px;
+    text-align: center;
+    margin-top: 2px;
+    color: rgb(255, 255, 255);
+    font-size: 10px;
+    font-style: italic;
+  }
+
+
+/* Submit Button */
+.submit-button {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    font-family: 'RB Magnat Neue Text Test', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #bb6a3b;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover Effect */
+.submit-button:hover {
+    background-color: #a55a2f;
+}
+
+/* Form Container - Adjusted for button positioning */
+.form-container {
+    position: relative; /* Needed for absolute positioning of the button */
+    padding-bottom: 60px; /* Extra space to prevent overlap */
+}
+
+.spacer2 {
+    margin-top: 20px;
+}

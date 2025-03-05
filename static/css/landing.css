@@ -1,0 +1,113 @@
+@font-face {
+    font-family: 'RB Magnat Neue Text Test';
+    src: url('/static/fonts/RBMagnatNeueText-SemiBold.woff2') format('woff2'),
+        url('/static/fonts/RBMagnatNeueText-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  /* General Styles */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'RB Magnat Neue Text Test';
+    background-color: #f7e5d6; /* Background color */
+    background-image: url('/static/images/J&O\ Wedding\ New\ Invite\ pattern.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  /* Container for the form */
+  .container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+  }
+  
+  .custom-text {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 20px;
+    font-style: italic;
+  }
+  
+  .custom-text2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+    font-style: italic;
+  }
+  
+  /* Form container */
+  .form-container {
+    position: relative; /* Required for absolute positioning of the button */
+    background-color: #b58159; /* Form background color */
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  /* Logo image */
+  img {
+    width: 300px;
+    height: 300px;
+  }
+
+  .wedding-info {
+    text-align: center;
+    margin-bottom: 0px;
+    color: #fff;
+    font-size: 14px;
+  }
+
+.spacer {
+    height: 5px;
+    margin-top: 0px !important; /* Force the margin to apply */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+  .spacer p {
+    margin-bottom: 10px;
+  }
+
+  .wedding-info p {
+    margin-bottom: 0px;
+  }
+  
+  .spacer2 strong{
+    position: relative;
+    top: 10px;
+    bottom: 20px;
+  }
+  /* Submit button */
+  .submit-button { 
+    width: auto; /* Adjust width automatically */ 
+    position: relative; /* Position the button */
+    bottom: 20px; /* Position the button at the bottom */
+    padding: 10px 24px; /* Add more padding for better appearance */
+    text-decoration: none;
+    background-color: #bb6a3b; /* Button color */
+    color: #fff;
+    border: none;
+    border-radius: 40px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #a55a2f; /* Darker shade for hover state */
+  }
+
