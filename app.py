@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 import mysql.connector
 from datetime import datetime
-from functools import wraps  # ✅ Missing import added
+from functools import wraps 
 
 # Load environment variables
 load_dotenv()

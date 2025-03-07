@@ -5,7 +5,7 @@
 .dockerignore
 
 # Ignore Google Cloud API credentials
-iamadinkra-ff3a4-b7ff7fb9d6ba.json
+*iamadinkra-ff3a4-b7ff7fb9d6ba.json
 *.json  # (Optional: Ignores all JSON files)
 
 # Ignore log files
