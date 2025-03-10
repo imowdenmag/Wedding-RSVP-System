@@ -45,7 +45,7 @@
                     //Redirect to the confirmation page  with page  guest details
                     window.location.href = data.redirect_url;
                 } else {
-                    document.getElementById('responseMessage').textContent = 'Code not found. Please try again.';
+                    document.getElementById('responseMessage').textContent = 'Invalid Guest Code Submitted. Please try again.';
                 }
             })
             .catch(error => console.error('Error:', error));
