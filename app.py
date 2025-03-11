@@ -41,23 +41,18 @@ except Exception as e:
 
 # MySQL setup with error handling
 try:
-    db_host = os.getenv("DB_HOST", "localhost")  
-    db_user = os.getenv("DB_USER", "root")  
-    db_password = os.getenv("DB_PASSWORD", "")
-    db_name = os.getenv("DB_NAME", "")
-
-    print(f"🔄 Connecting to MySQL at {db_host}...")  # Debugging output
-
+    
     db = mysql.connector.connect(
-        host=db_host,
-        user=db_user,
-        password=db_password,
-        database=db_name
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE")
     )
     cursor = db.cursor(dictionary=True)
-    print("✅ Connected to MySQL successfully!")
+    print("✅ Connected to Railway MySQL successfully!")
+
 except mysql.connector.Error as err:
-    print(f"❌ Error connecting to MySQL: {err}")
+    print(f"❌ Error connecting to Railway MySQL: {err}")
     db = None  # Avoid crashes if connection fails
 
 # Admin login required decorator
