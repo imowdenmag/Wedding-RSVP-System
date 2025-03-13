@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, session, url_for
+from flask import Flask, request, jsonify, render_template, redirect, session, url_for, flash
 import gspread
 from google.oauth2.service_account import Credentials
 import json
@@ -49,10 +49,10 @@ try:
         database=os.getenv("MYSQLDATABASE")
     )
     cursor = db.cursor(dictionary=True)
-    print("✅ Connected to Railway MySQL successfully!")
+    print("✅ Connected to VM MySQL successfully!")
 
 except mysql.connector.Error as err:
-    print(f"❌ Error connecting to Railway MySQL: {err}")
+    print(f"❌ Error connecting to VM MySQL: {err}")
     db = None  # Avoid crashes if connection fails
 
 # Admin login required decorator
@@ -131,7 +131,7 @@ def checkin():
 @app.route('/check-in', methods=['POST'])
 def check_in():
     data = request.get_json()
-    code = data['code']
+    code = data['code'].strip().upper()
     records = sheet1.get_all_records()
 
     guest_data = next((record for record in records if record['GUEST CODE'] == code), None)
@@ -182,6 +182,13 @@ def admin_dashboard():
     records = sheet2.get_all_records()
     return render_template('admin_dashboard.html', name_of_admin=admin_name, records=records)
 
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_id', None)
+    flash("Logged Out Successfully", "info")
+    return redirect('/admin/login')
+
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    # port = int(os.environ.get("PORT", 8080))
+    # app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)

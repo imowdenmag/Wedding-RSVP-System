@@ -1,0 +1,118 @@
+@font-face {
+    font-family: 'RB Magnat Neue Text Test';
+    src: url('/static/fonts/RBMagnatNeueText-SemiBold.woff2') format('woff2'),
+        url('/static/fonts/RBMagnatNeueText-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  /* General Page Styling */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'RB Magnat Neue Text Test';
+    background-color: #f7e5d6; /* Soft Beige Background */
+    background-image: url('/static/images/J&O\ Wedding\ New\ Invite\ pattern.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  /* Container for Form */
+  .container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+  }
+  
+  /* Form Container */
+  .form-container {
+    background-color: #b58159; /* Elegant Brown */
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+  }
+  
+  /* Form Title */
+  .form-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  img {
+    width: 300px;
+    height: 300px;
+  }
+  
+  /* Form Group */
+  .form-group {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* Form Label */
+  .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  
+  /* Form Input */
+  .form-input {
+    width: 275px;
+    height: 30px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 40px;
+    font-size: 14px;
+    font-family: 'RB Magnat Neue Text Test';
+    color: #333;
+    background-color: #fff;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  
+  .form-input:focus {
+    border-color: #bb6a3b;
+  }
+  
+  /* Submit Button */
+  .submit-button {
+    position: absolute;
+    bottom: 10px;
+    right: 40px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #bb6a3b;
+    padding: 7px 7px;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Button Hover */
+  .submit-button:hover {
+    background-color: #a55a2f;
+  }
+  
+  /* Response Message */
+  .response-message {
+    margin-top: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.961);
+  }
+  
