@@ -3,11 +3,11 @@ version: '3.9'
 services:
   db:
     image: mysql:8.0
-    container_name: mysql_db
+    container_name: JO_Wedding-RSVP
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: Commando1+
-      MYSQL_DATABASE: Wedding_RSVP
+      MYSQL_DATABASE: jo_wedding
     ports:
       - "3306:3306"
 
