@@ -64,15 +64,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Admin login required decorator
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'admin_id' not in session:
-            return redirect('/admin/login')
-        return f(*args, **kwargs)
-    return decorated_function
-
 # Routes
 @app.route('/')
 def index():
@@ -133,56 +124,25 @@ def confirm_attendance():
     print("Guest not found")
     return jsonify({"status": "error", "message": "Guest not found"}), 404
 
-
-# --- CHECK-IN ROUTES ---
-
 @app.route('/checkin')
 def checkin():
     return render_template('checkin.html')
-
-@app.route('/search-guest', methods=['GET'])
-def search_guest():
-    query = request.args.get('query', '').strip().upper()
-    if not query:
-        return jsonify([])
-
-    records = sheet1.get_all_records()
-    results = []
-    
-    for record in records:
-        if query in record['GUEST CODE'] or query in record['GUEST FULL NAME']:
-            results.append({
-                "code": record['GUEST CODE'],
-                "name": record['GUEST FULL NAME'],
-                "table": record['Table Assigned'],
-                "seating": record['SEATING ZONE'],
-                "designation": record['Designation']
-            })
-        if len(results) >= 10:
-            break  # Limit results for efficiency
-
-    return jsonify(results)
 
 @app.route('/check-in', methods=['POST'])
 def check_in():
     data = request.get_json()
     code = data['code'].strip().upper()
-    
     records = sheet1.get_all_records()
+
     guest_data = next((record for record in records if record['GUEST CODE'] == code), None)
 
     if not guest_data:
         return jsonify({"status": "error", "message": "Guest not found"}), 404
 
-    # Editable fields
-    guest_name = data.get('name', guest_data['GUEST FULL NAME'])
-    seating = data.get('seating', guest_data['SEATING ZONE'])
-    table = data.get('table', guest_data['Table Assigned'])
-    designation = data.get('designation', guest_data['Designation'])
-
     # Log check-in
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    new_row = [timestamp, code, guest_name, seating, table, designation, "", "", "", "", "", "", "", ""]
+    new_row = [timestamp, guest_data['GUEST CODE'], guest_data['GUEST FULL NAME'], 
+               guest_data['Table Assigned'], guest_data['Designation'], "", "", "", "", "", "", "", "", ""]
     sheet2.append_row(new_row)
 
     return jsonify({"status": "success", "message": "Check-in successful"})
@@ -229,6 +189,5 @@ def admin_logout():
     return redirect('/admin/login')
 
 if __name__ == '__main__':
-    # port = int(os.environ.get("PORT", 8080))
-    # app.run(host="0.0.0.0", port=port)
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
