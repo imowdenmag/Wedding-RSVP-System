@@ -187,6 +187,54 @@ def check_in():
 
     return jsonify({"status": "success", "message": "Check-in successful"})
 
+@app.route('/summary')
+def summary():
+    guest_code = request.args.get('code', '').strip().upper()
+    
+    if not guest_code:
+        return "Guest code not provided", 400
+
+    # Fetch guest details from Sheet 1
+    records = sheet1.get_all_records()
+    guest_details = next((record for record in records if record['GUEST CODE'] == guest_code), None)
+
+    if not guest_details:
+        return "Guest not found", 404
+
+    return render_template('summary.html', 
+                           code=guest_code,
+                           guest_name=guest_details.get('GUEST FULL NAME', 'Unknown'),
+                           seating_zone=guest_details.get('SEATING ZONE', 'Unknown'),
+                           table_assigned=guest_details.get('Table Assigned', 'Unknown'),
+                           designation=guest_details.get('Designation', 'Unknown'))
+
+
+@app.route('/complete-checkin', methods=['POST'])
+def complete_checkin():
+    """ Finalizes check-in and logs the guest data in Sheet 2. """
+    data = request.get_json()
+    code = data['code'].strip().upper()
+
+    records = sheet1.get_all_records()
+    guest_data = next((record for record in records if record['GUEST CODE'] == code), None)
+
+    if not guest_data:
+        return jsonify({"status": "error", "message": "Guest not found"}), 404
+
+    # Capture data
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    guest_name = guest_data['GUEST FULL NAME']
+    seating = guest_data['SEATING ZONE']
+    table = guest_data['Table Assigned']
+    designation = guest_data['Designation']
+
+    # Add new row to Sheet 2
+    new_row = [timestamp, code, guest_name, seating, table, designation, "", "", "", "", "", "", "", ""]
+    sheet2.append_row(new_row)
+
+    return jsonify({"status": "success", "message": "Guest check-in logged successfully"})
+
+
 @app.route('/confirmed')
 def confirmed():
     return render_template('Yes.html')

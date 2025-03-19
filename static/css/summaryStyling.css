@@ -1,0 +1,89 @@
+@font-face {
+    font-family: 'RB Magnat Neue Text Test';
+    src: url('/static/fonts/RBMagnatNeueText-SemiBold.woff2') format('woff2'),
+         url('/static/fonts/RBMagnatNeueText-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'RB Magnat Neue Text Test';
+    background-color: #f7e5d6;
+    background-image: url('/static/images/J&O Wedding New Invite pattern.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .summary-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+  }
+  
+  .summary-card {
+    background-color: #b58159;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+  }
+  
+  .summary-card h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 15px;
+  }
+  
+  .guest-name {
+    color: #ffddaa;
+    font-weight: 700;
+  }
+  
+  .summary-card p {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin: 10px 0;
+  }
+  
+  .btn-complete {
+    background-color: #bb6a3b;
+    color: white;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-top: 15px;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  .btn-complete:hover {
+    background-color: #9b5a30;
+  }
+  
+  @keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+  }
+  
+  .summary-card {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
