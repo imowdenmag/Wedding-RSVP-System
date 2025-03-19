@@ -124,29 +124,6 @@ def confirm_attendance():
     print("Guest not found")
     return jsonify({"status": "error", "message": "Guest not found"}), 404
 
-@app.route('/checkin')
-def checkin():
-    return render_template('checkin.html')
-
-@app.route('/check-in', methods=['POST'])
-def check_in():
-    data = request.get_json()
-    code = data['code'].strip().upper()
-    records = sheet1.get_all_records()
-
-    guest_data = next((record for record in records if record['GUEST CODE'] == code), None)
-
-    if not guest_data:
-        return jsonify({"status": "error", "message": "Guest not found"}), 404
-
-    # Log check-in
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    new_row = [timestamp, guest_data['GUEST CODE'], guest_data['GUEST FULL NAME'], 
-               guest_data['Table Assigned'], guest_data['Designation'], "", "", "", "", "", "", "", "", ""]
-    sheet2.append_row(new_row)
-
-    return jsonify({"status": "success", "message": "Check-in successful"})
-
 @app.route('/confirmed')
 def confirmed():
     return render_template('Yes.html')
@@ -154,6 +131,108 @@ def confirmed():
 @app.route('/declined')
 def declined():
     return render_template('No.html')
+
+# --- CHECK-IN ROUTES ---
+@app.route('/checkin')
+def checkin():
+    return render_template('checkin.html')
+
+@app.route('/search-guest', methods=['GET'])
+def search_guest():
+    query = request.args.get('query', '').strip().upper()
+    if not query:
+        return jsonify([])
+
+    records = sheet1.get_all_records()
+    results = []
+
+    for record in records:
+        guest_code = record['GUEST CODE']
+        guest_name = record['GUEST FULL NAME']
+
+        # Check if query matches code or name
+        if query in guest_code or query in guest_name:
+            results.append({
+                "code": guest_code,
+                "name": guest_name,
+                "table": record.get('Table Assigned', 'Unknown'),
+                "seating": record.get('SEATING ZONE', 'Unknown'),
+                "designation": record.get('Designation', 'Unknown')
+            })
+
+        if len(results) >= 10:
+            break  # Limit results for efficiency
+
+    return jsonify(sorted(results, key=lambda x: x['name']))
+
+@app.route('/check-in', methods=['POST'])
+def check_in():
+    data = request.get_json()
+    code = data['code'].strip().upper()
+    
+    records = sheet1.get_all_records()
+    guest_data = next((record for record in records if record['GUEST CODE'] == code), None)
+
+    if not guest_data:
+        return jsonify({"status": "error", "message": "Guest not found"}), 404
+
+    # Capture details
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    guest_name = data.get('name', guest_data['GUEST FULL NAME'])
+    seating = data.get('seating', guest_data['SEATING ZONE'])
+    table = data.get('table', guest_data.get('Table Assigned', 'Unknown'))  # ✅ Fixed default value
+    designation = data.get('designation', guest_data.get('Designation', 'Unknown'))  # ✅ Fixed default value
+    emergency_contact = data.get('emergency_contact', '')
+    num_devices = data.get('num_devices', '')
+    device_details = data.get('device_details', '')
+
+    # ✅ Include designation and table when saving to Sheet 2
+    new_row = [
+        timestamp, code, guest_name, seating, table, designation, emergency_contact,
+        num_devices, device_details, "", "", "", "", "", ""
+    ]
+    sheet2.append_row(new_row)
+
+    return jsonify({"status": "success", "message": "Check-in successful"})
+
+@app.route('/summary')
+def summary():
+    guest_code = request.args.get('code', '').strip().upper()
+
+    if not guest_code:
+        return "Guest code not provided", 400
+
+    # Fetch check-in data from Sheet 2
+    checkin_records = sheet2.get_all_records()
+    checkin_details = next((rec for rec in checkin_records if rec.get('GuestCode') == guest_code), None)
+
+    # If checked in, ensure we pull seating, table, and designation correctly
+    if checkin_details:
+        records = sheet1.get_all_records()
+        guest_details = next((record for record in records if record.get('GUEST CODE') == guest_code), {})
+
+        return render_template('summary.html',
+                               code=guest_code,
+                               guest_name=checkin_details.get('GuestName', 'Unknown'),
+                               seating_zone=checkin_details.get('Seating', guest_details.get('SEATING ZONE', 'Unknown')),
+                               table_assigned=checkin_details.get('Table Assigned', guest_details.get('Table Assigned', 'Unknown')),
+                               designation=checkin_details.get('Designation', guest_details.get('Designation', 'Unknown')),
+                               checkin_status="Checked In")
+
+    # If not checked in, pull from Sheet 1
+    records = sheet1.get_all_records()
+    guest_details = next((record for record in records if record.get('GUEST CODE') == guest_code), None)
+
+    if not guest_details:
+        return "Guest not found", 404
+
+    return render_template('summary.html',
+                           code=guest_code,
+                           guest_name=guest_details.get('GUEST FULL NAME', 'Unknown'),
+                           seating_zone=guest_details.get('SEATING ZONE', 'Unknown'),
+                           table_assigned=guest_details.get('Table Assigned', 'Unknown'),
+                           designation=guest_details.get('Designation', 'Unknown'),
+                           checkin_status="Not Checked In")
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -189,5 +268,6 @@ def admin_logout():
     return redirect('/admin/login')
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    # port = int(os.environ.get("PORT", 8080))
+    # app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
