@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --default-timeout=3000 -r requirements.txt
 
 # Expose the port Flask runs on
 EXPOSE 8080
