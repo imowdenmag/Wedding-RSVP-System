@@ -62,7 +62,7 @@ body {
   margin: 10px 0;
 }
 
-.btn-complete {
+.btn-new-guest {
   background-color: #bb6a3b;
   color: white;
   padding: 10px 15px;
@@ -76,7 +76,7 @@ body {
   transition: background 0.3s ease-in-out;
 }
 
-.btn-complete:hover {
+.btn-new-guest:hover {
   background-color: #9b5a30;
 }
 
