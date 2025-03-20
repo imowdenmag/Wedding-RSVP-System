@@ -32,16 +32,16 @@ client = gspread.authorize(creds)
 
 # Open Google Sheets
 try:
-    sheet1 = client.open("J&O Wedding Guest Data 2025").worksheet("Master Guest Sheet")  # Sheet 1
-    sheet2 = client.open("J&O Wedding Guest Data 2025").worksheet("Guest Check-In")  # ✅ Fixed extra space in name
-    sheet3 = client.open("J&O Wedding Guest Data 2025").worksheet("RSVP Logging")  # Sheet 3 for RSVP logs
+    sheet = client.open("J&O Wedding Guest Data 2025")
+    sheet1 = sheet.worksheet("Master Guest Sheet")
+    sheet2 = sheet.worksheet("Guest Check-In")
+    sheet3 = sheet.worksheet("RSVP Logging")
     print("✅ Connected to Google Sheets successfully!")
 except Exception as e:
     print(f"❌ Error connecting to Google Sheets: {e}")
 
 # MySQL setup with error handling
 try:
-    
     db = mysql.connector.connect(
         host=os.getenv("MYSQLHOST"),
         user=os.getenv("MYSQLUSER"),
@@ -49,13 +49,22 @@ try:
         database=os.getenv("MYSQLDATABASE")
     )
     cursor = db.cursor(dictionary=True)
-    print("✅ Connected to VM MySQL successfully!")
-
+    print("✅ Connected to MySQL successfully!")
 except mysql.connector.Error as err:
-    print(f"❌ Error connecting to VM MySQL: {err}")
+    print(f"❌ Error connecting to MySQL: {err}")
     db = None  # Avoid crashes if connection fails
 
-# Admin login required decorator
+# --- Preload Guest Data ---
+def load_guest_data():
+    global guest_data_dict
+    records = sheet1.get_values()
+    headers = records[0]
+    guest_data_dict = {row[1]: dict(zip(headers, row)) for row in records[1:] if len(row) > 1}
+    print(f"✅ Loaded {len(guest_data_dict)} guest records into memory.")
+
+load_guest_data()
+
+# --- Admin login required decorator ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -64,7 +73,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Routes
+# --- Routes ---
 @app.route('/')
 def index():
     return render_template('landing.html')
@@ -77,29 +86,31 @@ def rsvp():
 def check_code():
     data = request.get_json()
     code = data['code'].strip().upper()
-    records = sheet1.get_all_records()
-
-    for record in records:
-        if record['GUEST CODE'] == code:
-            return jsonify({
-                "status": "success",
-                "redirect_url": url_for('confirm', 
-                                       code=code,
-                                       guest_name=record['GUEST FULL NAME'],
-                                       seating_zone=record['SEATING ZONE'],
-                                       table_assigned=record['TABLE ASSIGNED'],
-                                       designation=record['DESIGNATION'])
-            })
+    
+    guest = guest_data_dict.get(code)
+    if guest:
+        return jsonify({
+            "status": "success",
+            "redirect_url": url_for('confirm', 
+                code=code,
+                guest_name=guest['GUEST FULL NAME'],
+                seating_zone=guest.get('SEATING ZONE', 'Unknown'),
+                table_assigned=guest.get('TABLE ASSIGNED', 'Unknown'),
+                designation=guest.get('DESIGNATION', 'Unknown')
+            )
+        })
+    
     return jsonify({"status": "error", "message": "Code not found"}), 404
 
 @app.route('/confirm')
 def confirm():
     return render_template('confirm.html', 
-                          code=request.args.get('code'),
-                          guest_name=request.args.get('guest_name'),
-                          seating_zone=request.args.get('seating_zone'),
-                          table_assigned=request.args.get('table_assigned'),
-                          designation=request.args.get('designation'))
+        code=request.args.get('code'),
+        guest_name=request.args.get('guest_name'),
+        seating_zone=request.args.get('seating_zone'),
+        table_assigned=request.args.get('table_assigned'),
+        designation=request.args.get('designation')
+    )
 
 @app.route('/confirm-attendance', methods=['POST'])
 def confirm_attendance():
@@ -108,25 +119,23 @@ def confirm_attendance():
 
     print(f"Received code: {code}, attendance: {attendance}")
 
-    records = sheet1.get_all_records()
-    for i, record in enumerate(records):
-        if record['GUEST CODE'] == code:
-            print(f"Updating guest: {record['GUEST FULL NAME']} with attendance: {attendance}")
-            sheet1.update_cell(i + 2, 10, attendance)  # Update RSVP STATUS column (10th column)
+    guest = guest_data_dict.get(code)
+    if guest:
+        row_number = list(guest_data_dict.keys()).index(code) + 2
+        sheet1.batch_update([{
+            'range': f'J{row_number}',
+            'values': [[attendance]]
+        }])
 
-            # Log RSVP attempt
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            log_entry = [timestamp, code, record['GUEST FULL NAME'], attendance]
-            sheet3.append_row(log_entry)
-            
-            return jsonify({"status": "success", "message": "Attendance updated and logged successfully"})
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = [timestamp, code, guest['GUEST FULL NAME'], attendance]
+        sheet3.append_row(log_entry)
+
+        return jsonify({"status": "success", "message": "Attendance updated and logged successfully"})
     
-    print("Guest not found")
     return jsonify({"status": "error", "message": "Guest not found"}), 404
 
-
 # --- CHECK-IN ROUTES ---
-
 @app.route('/checkin')
 def checkin():
     return render_template('checkin.html')
@@ -137,24 +146,16 @@ def search_guest():
     if not query:
         return jsonify([])
 
-    records = sheet1.get_all_records()
-    results = []
-
-    for record in records:
-        guest_code = record['GUEST CODE']
-        guest_name = record['GUEST FULL NAME']
-
-        if query in guest_code or query in guest_name:
-            results.append({
-                "code": guest_code,
-                "name": guest_name,
-                "table": record.get('TABLE ASSIGNED', 'Unknown'),
-                "seating": record.get('SEATING ZONE', 'Unknown'),
-                "designation": record.get('DESIGNATION', 'Unknown')
-            })
-
-        if len(results) >= 10:
-            break
+    results = [
+        {
+            "code": code,
+            "name": guest['GUEST FULL NAME'],
+            "table": guest.get('TABLE ASSIGNED', 'Unknown'),
+            "seating": guest.get('SEATING ZONE', 'Unknown'),
+            "designation": guest.get('DESIGNATION', 'Unknown')
+        }
+        for code, guest in guest_data_dict.items() if query in code or query in guest['GUEST FULL NAME']
+    ][:10]
 
     return jsonify(sorted(results, key=lambda x: x['name']))
 
@@ -163,23 +164,12 @@ def check_in():
     data = request.get_json()
     code = data['code'].strip().upper()
     
-    records = sheet1.get_all_records()
-    guest_data = next((record for record in records if record['GUEST CODE'] == code), None)
-
-    if not guest_data:
+    guest = guest_data_dict.get(code)
+    if not guest:
         return jsonify({"status": "error", "message": "Guest not found"}), 404
 
-    # Capture details
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    guest_name = data.get('name', guest_data['GUEST FULL NAME'])
-    seating = data.get('seating', guest_data['SEATING ZONE'])
-    table = data.get('table', guest_data['TABLE ASSIGNED'])
-    designation = data.get('designation', guest_data['DESIGNATION'])
-
-    # ✅ Include designation and table when saving to Sheet 2
-    new_row = [
-        timestamp, code, guest_name, seating, table, designation
-    ]
+    new_row = [timestamp, code, guest['GUEST FULL NAME'], guest.get('SEATING ZONE', 'Unknown'), guest.get('TABLE ASSIGNED', 'Unknown'), guest.get('DESIGNATION', 'Unknown')]
     sheet2.append_row(new_row)
 
     return jsonify({"status": "success", "message": "Check-in successful"})
@@ -210,28 +200,16 @@ def summary():
                            designation=guest_details.get('DESIGNATION', 'Unknown'),
                            checkin_status="Checked In" if checkin_details else "Not Checked In")
 
-
-@app.route('/confirmed')
-def confirmed():
-    return render_template('Yes.html')
-
-@app.route('/declined')
-def declined():
-    return render_template('No.html')
-
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         
-        # Create a new cursor for this function
-        db_cursor = db.cursor(dictionary=True)
-        db_cursor.execute("SELECT * FROM admins WHERE username = %s", (username,))
-        admin = db_cursor.fetchone()
-        db_cursor.close()  # Close the cursor after query execution
+        cursor.execute("SELECT * FROM admins WHERE username = %s", (username,))
+        admin = cursor.fetchone()
 
-        if admin and admin['password'] == password:  # Use bcrypt in production
+        if admin and admin['password'] == password:
             session['admin_id'] = admin['id']
             return redirect('/admin/dashboard')
 
@@ -255,4 +233,3 @@ def admin_logout():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
-    # app.run(debug=True)
