@@ -121,6 +121,14 @@ img {
   display: none;
 }
 
+.footer-image {
+  position: fixed;
+  bottom: 20px;  /* Adjust this value if needed */
+  left: 50%;
+  transform: translateX(-50%); /* Centers the image horizontally */
+  width: 120px; /* Adjust size as needed */
+  z-index: 1000; /* Ensures it's above other content */
+}
 @keyframes spin {
   to {
       transform: rotate(360deg);
