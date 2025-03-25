@@ -82,16 +82,24 @@ def index():
 def rsvp():
     return render_template('rsvp.html')
 
+def find_guest_by_code(code):
+    """Fetch guest details dynamically from Google Sheets."""
+    records = sheet1.get_all_records()  # Fetch latest data
+    for guest in records:
+        if guest['GUEST CODE'].strip().upper() == code:
+            return guest  # Return guest details if found
+    return None  # Return None if not found
+
 @app.route('/check-code', methods=['POST'])
 def check_code():
     data = request.get_json()
     code = data['code'].strip().upper()
-    
-    guest = guest_data_dict.get(code)
+
+    guest = find_guest_by_code(code)
     if guest:
         return jsonify({
             "status": "success",
-            "redirect_url": url_for('confirm', 
+            "redirect_url": url_for('confirm',
                 code=code,
                 guest_name=guest['GUEST FULL NAME'],
                 seating_zone=guest.get('SEATING ZONE', 'Unknown'),
@@ -135,6 +143,15 @@ def confirm_attendance():
     
     return jsonify({"status": "error", "message": "Guest not found"}), 404
 
+@app.route('/confirmed')
+def confirmed():
+    return render_template('Yes.html')
+
+
+@app.route('/declined')
+def declined():
+    return render_template('No.html')
+
 # --- CHECK-IN ROUTES ---
 @app.route('/checkin')
 def checkin():
@@ -146,15 +163,17 @@ def search_guest():
     if not query:
         return jsonify([])
 
+    records = sheet1.get_all_records()  # Fetch latest guest data
+
     results = [
         {
-            "code": code,
+            "code": guest['GUEST CODE'],
             "name": guest['GUEST FULL NAME'],
             "table": guest.get('TABLE ASSIGNED', 'Unknown'),
             "seating": guest.get('SEATING ZONE', 'Unknown'),
             "designation": guest.get('DESIGNATION', 'Unknown')
         }
-        for code, guest in guest_data_dict.items() if query in code or query in guest['GUEST FULL NAME']
+        for guest in records if query in guest['GUEST CODE'].upper() or query in guest['GUEST FULL NAME'].upper()
     ][:10]
 
     return jsonify(sorted(results, key=lambda x: x['name']))
@@ -164,7 +183,8 @@ def check_in():
     data = request.get_json()
     code = data['code'].strip().upper()
     
-    guest = guest_data_dict.get(code)
+    guest = find_guest_by_code(code)
+
     if not guest:
         return jsonify({"status": "error", "message": "Guest not found"}), 404
 
@@ -173,6 +193,7 @@ def check_in():
     sheet2.append_row(new_row)
 
     return jsonify({"status": "success", "message": "Check-in successful"})
+
 
 @app.route('/summary')
 def summary():
@@ -231,6 +252,6 @@ def admin_logout():
     return redirect('/admin/login')
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
-    
+    # port = int(os.environ.get("PORT", 8080))
+    # app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
