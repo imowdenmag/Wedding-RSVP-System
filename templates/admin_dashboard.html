@@ -9,12 +9,34 @@
     <link rel="icon" href="{{ url_for('static', filename='images/JO FAVICON 2.png') }}">
 </head>
 <body>
+    <div class="overlay"></div>
+
     <div class="dashboard-container">
         <header>
             <h1 class="admin-title">Hello, {{ name_of_admin }}</h1>
             <a href="/admin/logout" class="logout-button">Logout</a>
         </header>
 
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Total RSVPs</h2>
+                <p class="text-2xl font-bold">{{ total_rsvp }}</p>
+            </div>
+            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Checked-In Guests</h2>
+                <p class="text-2xl font-bold">{{ total_checked_in }}</p>
+            </div>
+            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Total Guests</h2>
+                <p class="text-2xl font-bold">{{ total_guests }}</p>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <input type="text" id="search" placeholder="Search guests by name or code..." class="p-2 w-full rounded bg-gray-700 text-white mb-4">
+
+        <!-- Table Container -->
         <div class="table-container">
             <table>
                 <thead>
@@ -24,21 +46,86 @@
                         <th>Seating</th>
                         <th>Designation</th>
                         <th>Timestamp</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for record in records %}
+                <tbody id="guest-list">
+                    {% for record in checkin_data %}
                     <tr>
+                        <td>{{ record['TimeStamp'] | default('N/A') }}</td>
                         <td>{{ record['GuestName'] }}</td>
                         <td>{{ record['GuestCode'] }}</td>
                         <td>{{ record['Seating'] }}</td>
                         <td>{{ record['Designation'] }}</td>
                         <td>{{ record['TimeStamp'] }}</td>
+                        <td>
+                            <button class="edit-btn" 
+                                onclick="editGuest(
+                                    '{{ record['GuestCode'] }}', 
+                                    '{{ record['GuestName'] | escapejs }}', 
+                                    '{{ record['Seating'] | escapejs }}'
+                                )">✏️ Edit</button>
+                            
+                            <button class="delete-btn" 
+                                onclick="deleteGuest('{{ record['GuestCode'] }}')">🗑 Delete</button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Export Button -->
+        <button onclick="exportCSV()" class="mt-4 p-2 bg-green-500 text-white rounded">📁 Export CSV</button>
     </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.getElementById("search").addEventListener("input", function () {
+            let searchQuery = this.value.toLowerCase();
+            let rows = document.querySelectorAll("#guest-list tr");
+            
+            rows.forEach(row => {
+                let name = row.cells[0].innerText.toLowerCase();
+                let code = row.cells[1].innerText.toLowerCase();
+                row.style.display = (name.includes(searchQuery) || code.includes(searchQuery)) ? "" : "none";
+            });
+        });
+
+        function editGuest(code, name, seating) {
+            let newName = prompt("Edit Guest Name:", name);
+            let newSeating = prompt("Edit Seating Zone:", seating);
+            if (newName && newSeating) {
+                fetch("/admin/edit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ guest_code: code, new_name: newName, new_seating: newSeating })
+                }).then(response => response.json()).then(data => {
+                    if (data.status === "success") location.reload();
+                    else alert(data.message);
+                });
+            }
+        }
+
+        function deleteGuest(code) {
+            if (confirm("Are you sure you want to delete this guest?")) {
+                fetch("/admin/delete", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ guest_code: code })
+                }).then(response => response.json()).then(data => {
+                    if (data.status === "success") location.reload();
+                    else alert(data.message);
+                });
+            }
+        }
+
+        function exportCSV() {
+            fetch("/admin/export/csv").then(response => response.json()).then(data => {
+                if (data.status === "success") alert("CSV exported successfully!");
+                else alert("Export failed.");
+            });
+        }
+    </script>
 </body>
 </html>

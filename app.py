@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 import mysql.connector
 from datetime import datetime
 from functools import wraps 
+import csv
+import pandas as pd
+from flask_wtf .csrf import generate_csrf
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +21,7 @@ with open("iamadinkra-ff3a4-864ca2842b01.json", "r") as file:
 print("✅ Google credentials loaded successfully!")
 
 app = Flask(__name__)
+app.jinja_env.filters['escapejs'] = generate_csrf
 
 # Ensure SECRET_KEY exists
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -221,6 +225,7 @@ def summary():
                            designation=guest_details.get('DESIGNATION', 'Unknown'),
                            checkin_status="Checked In" if checkin_details else "Not Checked In")
 
+# --- ADMIN ROUTES ---
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
@@ -237,19 +242,115 @@ def admin_login():
         return "Invalid credentials", 401
     return render_template('admin_login.html')
 
+@app.route('/admin/logout')
+def logout():
+    session.pop('admin_id', None)
+    flash("You have been logged out successfully.", "success")
+    return redirect(url_for('admin_login'))
+
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
+    if 'admin_id' not in session:
+        return redirect('/admin/login')
+
+    # Fetch admin name
     cursor.execute("SELECT name FROM admins WHERE id = %s", (session['admin_id'],))
     admin_name = cursor.fetchone()['name']
-    records = sheet2.get_all_records()
-    return render_template('admin_dashboard.html', name_of_admin=admin_name, records=records)
 
-@app.route('/admin/logout')
-def admin_logout():
-    session.pop('admin_id', None)
-    flash("Logged Out Successfully", "info")
-    return redirect('/admin/login')
+    # Get RSVP and Check-in Data
+    rsvp_data = sheet1.get_all_records()
+    checkin_data = sheet2.get_all_records()
+
+    # Calculate summary stats
+    total_rsvp = len([guest for guest in rsvp_data if guest['RSVP STATUS'] == 'Yes'])
+    total_checked_in = len(checkin_data)
+    total_guests = len(rsvp_data)
+
+    return render_template('admin_dashboard.html', 
+                           name_of_admin=admin_name, 
+                           total_rsvp=total_rsvp, 
+                           total_checked_in=total_checked_in,
+                           total_guests=total_guests,
+                           checkin_data=checkin_data)
+
+# --- SEARCH FUNCTIONALITY ---
+@app.route('/admin/search', methods=['POST'])
+def search_guest_admin():
+    search_query = request.form['search_query'].lower()
+    rsvp_data = sheet1.get_all_records()
+    
+    results = [guest for guest in rsvp_data if search_query in guest['Guest FULL NAME'].lower() or search_query in guest['GUEST CODE'].lower()]
+    
+    return jsonify(results)
+
+# --- MANUAL CHECK-IN ---
+@app.route('/admin/checkin', methods=['POST'])
+def manual_checkin():
+    guest_code = request.form['guest_code']
+    
+    # Check if guest exists in RSVP
+    rsvp_data = sheet1.get_all_records()
+    guest = next((g for g in rsvp_data if g['GUEST CODE'] == guest_code), None)
+
+    if guest:
+        # Add to check-in sheet
+        sheet2.append_row([
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Timestamp
+            guest['GUEST CODE'],
+            guest['GUEST FULL NAME'],
+            guest['SEATING ZONE'],
+            # # guest.get('Emergency Contact', ''),
+            # '0',  # Devices
+            # '',   # Device Details
+            # '',   # Collection Password
+            # '',   # Locker ID
+            # 'Not Collected',  # Collection Status
+            # 'No',  # Pouch Collected
+            # 'No',  # Pouch Returned
+            # '0',  # Number of Aides
+            # ''    # Aides Details
+        ])
+        return jsonify({'status': 'success', 'message': 'Guest checked in successfully!'})
+    else:
+        return jsonify({'status': 'error', 'message': 'Guest not found!'})
+
+# --- EDIT GUEST DETAILS ---
+@app.route('/admin/edit', methods=['POST'])
+def edit_guest():
+    guest_code = request.form['guest_code']
+    new_name = request.form['new_name']
+    new_seating = request.form['new_seating']
+    
+    data = sheet1.get_all_records()
+    row_index = next((i for i, g in enumerate(data, start=2) if g['GUEST CODE'] == guest_code), None)
+
+    if row_index:
+        sheet1.update(f"C{row_index}", new_name)  # Update Name
+        sheet1.update(f"K{row_index}", new_seating)  # Update Seating Zone
+        return jsonify({'status': 'success', 'message': 'Guest details updated!'})
+    return jsonify({'status': 'error', 'message': 'Guest not found!'})
+
+# --- DELETE GUEST RECORD ---
+@app.route('/admin/delete', methods=['POST'])
+def delete_guest():
+    guest_code = request.form['guest_code']
+
+    data = sheet1.get_all_records()
+    row_index = next((i for i, g in enumerate(data, start=2) if g['GUEST CODE'] == guest_code), None)
+
+    if row_index:
+        sheet1.delete_row(row_index)
+        return jsonify({'status': 'success', 'message': 'Guest record deleted!'})
+    return jsonify({'status': 'error', 'message': 'Guest not found!'})
+
+# --- EXPORT TO CSV ---
+@app.route('/admin/export/csv')
+def export_csv():
+    data = sheet2.get_all_records()
+    df = pd.DataFrame(data)
+    df.to_csv('checked_in_guests.csv', index=False)
+    return jsonify({'status': 'success', 'message': 'CSV exported!'})
 
 if __name__ == '__main__':
     # port = int(os.environ.get("PORT", 8080))
