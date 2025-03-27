@@ -52,7 +52,6 @@
                 <tbody id="guest-list">
                     {% for record in checkin_data %}
                     <tr>
-                        <td>{{ record['TimeStamp'] | default('N/A') }}</td>
                         <td>{{ record['GuestName'] }}</td>
                         <td>{{ record['GuestCode'] }}</td>
                         <td>{{ record['Seating'] }}</td>

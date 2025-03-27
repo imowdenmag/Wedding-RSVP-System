@@ -127,10 +127,11 @@ table {
 /* Table Header */
 thead {
     position: sticky;
-    top: 110px;
+    top: 0; /* Ensure it sticks at the top of the table */
     background: rgba(0, 0, 0, 0.7);
-    z-index: 98;
+    z-index: 100; /* Keep it above other elements */
 }
+
 
 th {
     color: #ffffff;
