@@ -78,14 +78,12 @@
                             li.dataset.code = guest.code;
                             li.dataset.name = guest.name;
                             li.dataset.table = guest.table || "";
-                            li.dataset.seating = guest.seating || "";
-                            li.dataset.designation = guest.designation || "";
+                            // li.dataset.seating = guest.seating || "";
+                            // li.dataset.designation = guest.designation || "";
                             li.addEventListener("click", () => {
                                 codeInput.value = guest.code;
                                 document.getElementById("guestName").value = guest.name;
                                 document.getElementById("table").value = guest.table;
-                                document.getElementById("seating").value = guest.seating;
-                                document.getElementById("designation").value = guest.designation;
                                 suggestionsList.innerHTML = ""; // Hide suggestions
                             });
                             suggestionsList.appendChild(li);
@@ -107,8 +105,8 @@
                     code: code,
                     name: document.getElementById("guestName").value,
                     table: document.getElementById("table").value,
-                    seating: document.getElementById("seating").value,
-                    designation: document.getElementById("designation").value,
+                    // seating: document.getElementById("seating").value,
+                    // designation: document.getElementById("designation").value,
                 };
     
                 fetch("/check-in", {

@@ -20,6 +20,14 @@
         <!-- Summary Cards -->
         <div class="grid grid-cols-3 gap-4 mb-6">
             <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Confirmed RSVPs</h2>
+                <p class="text-2xl font-bold">{{ total_guests }}</p>
+            </div>
+            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+                <h2 class="text-lg font-semibold">Declined RSVPs</h2>
+                <p class="text-2xl font-bold">{{ total_guests }}</p>
+            </div>
+            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
                 <h2 class="text-lg font-semibold">Total RSVPs</h2>
                 <p class="text-2xl font-bold">{{ total_rsvp }}</p>
             </div>
@@ -43,8 +51,8 @@
                     <tr>
                         <th>Name</th>
                         <th>Code</th>
-                        <th>Seating</th>
-                        <th>Designation</th>
+                        <th>Table</th>
+                        <th>RSVP Status</th>
                         <th>Timestamp</th>
                         <th>Actions</th>
                     </tr>
