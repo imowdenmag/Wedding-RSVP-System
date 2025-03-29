@@ -46,6 +46,7 @@ except Exception as e:
 
 # MySQL setup with error handling
 try:
+    
     db = mysql.connector.connect(
         host=os.getenv("MYSQLHOST"),
         user=os.getenv("MYSQLUSER"),
@@ -57,6 +58,11 @@ try:
 except mysql.connector.Error as err:
     print(f"❌ Error connecting to MySQL: {err}")
     db = None  # Avoid crashes if connection fails
+    
+
+print("🔍 MYSQL HOST:", os.getenv("MYSQLHOST"))
+print("🔍 MYSQL USER:", os.getenv("MYSQLUSER"))
+print("🔍 MYSQL DATABASE:", os.getenv("MYSQLDATABASE"))
 
 # --- Preload Guest Data ---
 def load_guest_data():
@@ -237,7 +243,7 @@ def admin_login():
 
         if admin and admin['password'] == password:
             session['admin_id'] = admin['id']
-            return redirect('/admin/dashboard')
+            return redirect('/admin/dashboard'), 200
 
         return "Invalid credentials", 401
     return render_template('admin_login.html')
@@ -353,6 +359,5 @@ def export_csv():
     return jsonify({'status': 'success', 'message': 'CSV exported!'})
 
 if __name__ == '__main__':
-    # port = int(os.environ.get("PORT", 8080))
-    # app.run(host="0.0.0.0", port=port)
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
