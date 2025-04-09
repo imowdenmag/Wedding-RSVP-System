@@ -16,6 +16,7 @@ from flask_wtf.csrf import generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import logging
+import functools
 import google.cloud.exceptions
 
 logging.basicConfig(level=logging.DEBUG)
@@ -27,7 +28,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
-    PERMANENT_SESSION_LIFETIME=1800  # 30 minutes
+    PERMANENT_SESSION_LIFETIME=3600  # 1 hour
 )
 
 # Custom escapejs filter
@@ -131,6 +132,16 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- Check-in login required decorator ---
+def authcheckIn_required(view_func):
+    @functools.wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if 'checkin_id' not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for('authCheckin'))
+        return view_func(*args, **kwargs)
+    return wrapped_view
+
 # --- Routes ---
 @app.route('/')
 def index():
@@ -233,9 +244,80 @@ def declined():
     return render_template('No.html')
 
 # --- CHECK-IN ROUTES ---
+@app.route('/auth/checkin', methods=['GET', 'POST'])
+def authCheckin():
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not username or not password:
+            flash("Invalid Credentials. Try again", "error")
+            return render_template('authCheckin.html'), 400 
+        
+        try:
+            checkin_doc_id = [
+                'admins001', 'admins002', 'admins003', 'admins004',
+                'checkIn001', 'checkIn002', 'checkIn003', 'checkIn004',
+                'checkIn005', 'checkIn006', 'checkIn007', 'checkIn008'
+            ]
+
+            for doc_id in checkin_doc_id:
+                checkin_doc = db.collection('admins').document(doc_id).get()
+
+                if checkin_doc.exists:
+                    data = checkin_doc.to_dict()
+                    logging.info(f"🔍 Checking '{doc_id}' for username: {username}")
+
+                    if data.get('username', '').strip().lower() == username.lower():
+                        logging.info(f"✅ Username matched in '{doc_id}'")
+
+                        if data.get('password', '').strip() == password:
+                            session['checkin_id'] = doc_id
+                            session['checkin_name'] = data.get('name', username)
+                            logging.info(f"✅ Admin logged in: {username} (from {doc_id})")
+                            return redirect('/checkin')
+                        else:
+                            logging.warning(f"❌ Password mismatch for {username}")
+                            break
+                    
+            flash("Invalid credentials", "error")
+            return render_template('authCheckin.html'), 401
+        
+        except Exception as e:
+            logging.error(f"🚨 Login error: {str(e)}")
+            flash("An error occurred. Please try again.", "error")
+            return render_template('authCheckin.html'), 500
+
+    return render_template('authCheckin.html')
+
+@app.route('/checkin/logout')
+@authcheckIn_required
+def checkin_logout():
+    session.pop('checkin_id', None)
+    session.pop('checkin_name', None)
+    flash("You've been logged out.", "info")
+    return redirect(url_for('authCheckin'))
+
 @app.route('/checkin')
+@authcheckIn_required
 def checkin():
-    return render_template('checkin.html')
+        
+# Fetch admin name from Firestore using document ID
+        logging.debug(f"Session data: {session}")
+        checkin_adminDoc = db.collection('admins').document(session['checkin_id']).get()
+        if not checkin_adminDoc.exists:
+            flash("Admin account not found", "error")
+            return redirect('/checkin/logout')
+        
+        checkin_adminData = checkin_adminDoc.to_dict()
+        checkin_admin_name = checkin_adminData.get('name', 'Admin')
+        checkin_admin_id = session['checkin_id']
+        logging.info(f"Admin ID: {checkin_admin_id}")
+        logging.info(f"Admin Name: {checkin_admin_name}")
+        # Pass admin name to the template
+        return render_template('checkin.html', 
+                               admin_name=checkin_admin_name, 
+                               admin_id=checkin_admin_id)
 
 @app.route('/search-guest', methods=['GET'])
 def search_guest():
