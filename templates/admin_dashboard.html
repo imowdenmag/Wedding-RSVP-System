@@ -51,10 +51,8 @@
                     <tr>
                         <th>Name</th>
                         <th>Code</th>
-                        <th>Table</th>
-                        <th>RSVP Status</th>
-                        <th>Timestamp</th>
-                        <th>Actions</th>
+                        <th>Seating</th>
+                        <th>Timestamp</th>  
                     </tr>
                 </thead>
                 <tbody id="guest-list">
@@ -63,9 +61,8 @@
                         <td>{{ record['GuestName'] }}</td>
                         <td>{{ record['GuestCode'] }}</td>
                         <td>{{ record['Seating'] }}</td>
-                        <td>{{ record['Designation'] }}</td>
                         <td>{{ record['TimeStamp'] }}</td>
-                        <td>
+                        <!-- <td>
                             <button class="edit-btn" 
                                 onclick="editGuest(
                                     '{{ record['GuestCode'] }}', 
@@ -75,7 +72,7 @@
                             
                             <button class="delete-btn" 
                                 onclick="deleteGuest('{{ record['GuestCode'] }}')">🗑 Delete</button>
-                        </td>
+                        </td> -->
                     </tr>
                     {% endfor %}
                 </tbody>
