@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jake and Olivia Wedding RSVP | Guest Check-In</title>
+    <title>Jake and Olivia Wedding | Guest Check-In</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/checkinStyle.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='images/JO FAVICON 2.png') }}">
 </head>
 <body>
+    <div class="logout">
+        <a href="/checkin/logout" class="logout-button">Logout</a>
+    </div>
     <div class="container">
+        <div class="salutation">
+            <h1 class="salutation-title">Hello, {{ admin_name }}</h1>
+        </div>
         <div class="form-container">
             <h1 class="form-title">Guest Check-In</h1>
             
@@ -45,15 +51,16 @@
                 <button type="submit" class="submit-button">Check-In</button>
                 <div id="loading" class="loading-spinner hidden"></div>
             </form>
-            
             <div id="responseMessage" class="response-message"></div>
         </div>
     </div>
+    
     <div class="footer-image">
         <img src="{{ url_for('static', filename='images/powered by adinkra.png') }}" alt="Company Logo">
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            const ADMIN_NAME = "{{ admin_name }}";
             const codeInput = document.getElementById("code");
             const suggestionsList = document.getElementById("suggestions");
             const checkinForm = document.getElementById("checkinForm");
@@ -105,6 +112,7 @@
                     code: code,
                     name: document.getElementById("guestName").value,
                     table: document.getElementById("table").value,
+                    attendedby: ADMIN_NAME
                     // seating: document.getElementById("seating").value,
                     // designation: document.getElementById("designation").value,
                 };

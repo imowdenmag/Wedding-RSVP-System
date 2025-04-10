@@ -348,6 +348,7 @@ def search_guest():
 def check_in():
     data = request.get_json()
     code = data['code'].strip().upper()
+    attendedby = data.get('attendedby', 'Unknown')
     
     guest = find_guest_by_code(code)
 
@@ -356,7 +357,13 @@ def check_in():
 
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_row = [timestamp, code, guest['GUEST FULL NAME'], guest.get('TABLE ASSIGNED', 'Unknown'), guest.get('DESIGNATION', 'Unknown')]
+        new_row = [
+            timestamp, 
+            code, 
+            guest['GUEST FULL NAME'], 
+            guest.get('TABLE ASSIGNED', 'Unknown'),
+            attendedby
+            ]
         sheet2.append_row(new_row)
         return jsonify({"status": "success", "message": "Check-in successful"})
     except Exception as e:
