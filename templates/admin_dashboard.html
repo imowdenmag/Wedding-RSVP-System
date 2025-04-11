@@ -18,14 +18,14 @@
         </header>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-5 gap-4 mb-6">
             <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
                 <h2 class="text-lg font-semibold">Confirmed RSVPs</h2>
-                <p class="text-2xl font-bold">{{ total_guests }}</p>
+                <p class="text-2xl font-bold">{{ confirmed_rsvp }}</p>
             </div>
             <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
                 <h2 class="text-lg font-semibold">Declined RSVPs</h2>
-                <p class="text-2xl font-bold">{{ total_guests }}</p>
+                <p class="text-2xl font-bold">{{ declined_rsvp }}</p>
             </div>
             <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
                 <h2 class="text-lg font-semibold">Total RSVPs</h2>
@@ -52,7 +52,8 @@
                         <th>Name</th>
                         <th>Code</th>
                         <th>Seating</th>
-                        <th>Timestamp</th>  
+                        <th>Timestamp</th> 
+                        <th>Attended By</th> 
                     </tr>
                 </thead>
                 <tbody id="guest-list">
@@ -62,6 +63,7 @@
                         <td>{{ record['GuestCode'] }}</td>
                         <td>{{ record['Seating'] }}</td>
                         <td>{{ record['TimeStamp'] }}</td>
+                        <td>{{record['AttendedBy']}}</td>
                         <!-- <td>
                             <button class="edit-btn" 
                                 onclick="editGuest(
@@ -130,6 +132,37 @@
                 else alert("Export failed.");
             });
         }
+
+        function fetchCheckInData() {
+        fetch('/admin/fetch-checkin-data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    const guestList = document.getElementById("guest-list");
+                    guestList.innerHTML = ""; // Clear existing rows
+
+                    data.data.forEach(record => {
+                        const row = document.createElement("tr");
+
+                        row.innerHTML = `
+                            <td>${record.GuestName}</td>
+                            <td>${record.GuestCode}</td>
+                            <td>${record.Seating || ''}</td>
+                            <td>${record.TimeStamp}</td>
+                            <td>${record.AttendedBy || ''}</td>
+                        `;
+
+                        guestList.appendChild(row);
+                    });
+                } else {
+                    console.error("Error fetching check-in data:", data.message);
+                }
+            })
+            .catch(error => console.error("AJAX error:", error));
+    }
+
+    // Poll every 1 seconds
+    setInterval(fetchCheckInData, 1000);
     </script>
 </body>
 </html>

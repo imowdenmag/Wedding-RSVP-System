@@ -76,6 +76,13 @@ body {
     box-shadow: 0 0 8px rgba(230, 57, 70, 0.6);
 }
 
+.error-message {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: rgba(241, 47, 47, 0.961);
+  }
+
 /* Login Button */
 .login-button {
     width: 100%;

@@ -93,10 +93,17 @@ try:
     sheet1 = sheet.worksheet("Master Guest Sheet")
     sheet2 = sheet.worksheet("Guest Check-In")
     sheet3 = sheet.worksheet("RSVP Logging")
+    sheet4 = sheet.worksheet("Reference Sheet")
     logging.info("✅ Connected to Google Sheets successfully!")
 except Exception as e:
     logging.error(f"❌ Error connecting to Google Sheets: {e}")
     raise
+
+demOdata = sheet4.get('D2:H2')
+
+first_row = next((row for row in demOdata if any(cell.strip() for cell in row)), None)
+
+print("First Confirmed Rsvp Row:", first_row)
 
 # --- Preload Guest Data ---
 def load_guest_data():
@@ -280,8 +287,8 @@ def authCheckin():
                             logging.warning(f"❌ Password mismatch for {username}")
                             break
                     
-            flash("Invalid credentials", "error")
-            return render_template('authCheckin.html'), 401
+            error1 = 'Incorrect username or password. Please try again.'
+            return render_template('authCheckin.html', error=error1), 401
         
         except Exception as e:
             logging.error(f"🚨 Login error: {str(e)}")
@@ -434,8 +441,8 @@ def admin_login():
                             logging.warning(f"❌ Password mismatch for {username}")
                             break  # stop checking after username match
 
-            flash("Invalid credentials", "error")
-            return render_template('admin_login.html'), 401
+            error = 'Incorrect username or password. Please try again.'
+            return render_template('admin_login.html', error=error), 401
 
         except Exception as e:
             logging.error(f"🚨 Login error: {str(e)}")
@@ -454,8 +461,14 @@ def logout():
 @login_required
 def admin_dashboard():
     try:
-        # Fetch admin name from Firestore using document ID
-        admin_doc = db.collection('admins').document(session['admin_id']).get()
+        # Fetch admin ID safely
+        admin_id = session.get('admin_id')
+        if not admin_id:
+            flash("Session expired. Please log in again.", "warning")
+            return redirect('/admin/login')
+
+        # Fetch admin name from Firestore
+        admin_doc = db.collection('admins').document(admin_id).get()
         if not admin_doc.exists:
             flash("Admin account not found", "error")
             return redirect('/admin/logout')
@@ -463,25 +476,56 @@ def admin_dashboard():
         admin_data = admin_doc.to_dict()
         admin_name = admin_data.get('name', 'Admin')
 
-        # Get RSVP and Check-in Data from Google Sheets
-        rsvp_data = sheet1.get_all_records()
-        checkin_data = sheet2.get_all_records()
+        # Use sheet4 for Reference Sheet
+        reference_sheet = sheet4
 
-        # Calculate summary stats
-        total_rsvp = len([guest for guest in rsvp_data if guest['RSVP STATUS'] == 'Yes'])
-        total_checked_in = len(checkin_data)
-        total_guests = len(rsvp_data)
+       # Fetch stats from Reference Sheet (row 2, cols D to H)
+        stats_cells = reference_sheet.range('D2:H2')
 
-        return render_template('admin_dashboard.html', 
-                            name_of_admin=admin_name, 
-                            total_rsvp=total_rsvp, 
-                            total_checked_in=total_checked_in,
-                            total_guests=total_guests,
-                            checkin_data=checkin_data)
+        if len(stats_cells) != 5:
+            logging.error(f"🔥Expected 5 cells in range D2:H2, got {len(stats_cells)}")
+            raise ValueError("Reference sheet format error.")
+
+        # Extract and safely parse each value
+        try:
+            total_confirmed_rsvp = int(stats_cells[0].value or 0)
+            total_declined_rsvp = int(stats_cells[1].value or 0)
+            total_rsvp = int(stats_cells[2].value or 0)
+            total_guests = int(stats_cells[3].value or 0)
+            total_checked_in = int(stats_cells[4].value or 0)
+        except ValueError as e:
+            logging.error(f"Invalid numeric value in Reference Sheet: {e}")
+            raise
+
+        # Fetch check-in data from sheet2 (Check-in Sheet)
+        checkin_data = sorted(sheet2.get_all_records(), key=lambda x: x.get('TimeStamp', ''), reverse=False)
+
+        return render_template(
+            'admin_dashboard.html', 
+            name_of_admin=admin_name, 
+            confirmed_rsvp=total_confirmed_rsvp,
+            declined_rsvp=total_declined_rsvp,
+            total_rsvp=total_rsvp,
+            total_checked_in=total_checked_in,
+            total_guests=total_guests,
+            checkin_data=checkin_data
+        )
+
     except Exception as e:
         logging.error(f"Dashboard error: {str(e)}")
         flash("Error loading dashboard", "error")
         return redirect('/admin/login')
+
+    # -- Ajax call to update the check-in status -- 
+@app.route('/admin/fetch-checkin-data')
+@login_required
+def fetch_checkin_data():
+    try:
+        checkin_data = sorted(sheet2.get_all_records(), key=lambda x: x.get('TimeStamp', ''), reverse=False)
+        return jsonify({'status': 'success', 'data': checkin_data})
+    except Exception as e:
+        logging.error(f"Error fetching check-in data: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to fetch check-in data.'})
 
 # --- SEARCH FUNCTIONALITY ---
 @app.route('/admin/search', methods=['POST'])
@@ -590,6 +634,11 @@ def export_csv():
         logging.error(f"Export CSV error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'Failed to export CSV'}), 500
 
+@app.errorhandler(404)
+def handle_404(e):
+    return render_template('404error.html'), 404
+
+
 # Health check endpoint
 @app.route('/health')
 def health_check():
@@ -606,5 +655,6 @@ def health_check():
     }), 503
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    # port = int(os.environ.get("PORT", 8080))
+    # app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(debug=True)
