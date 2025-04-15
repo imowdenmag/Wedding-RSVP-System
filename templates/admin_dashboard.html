@@ -7,6 +7,34 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='images/JO FAVICON 2.png') }}">
+    <style>
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.3s ease;
+        }
+    
+        .arrow-up {
+            color: green;
+            animation: popUp 0.4s ease;
+        }
+    
+        .arrow-down {
+            color: red;
+            animation: popDown 0.4s ease;
+        }
+    
+        @keyframes popUp {
+            0% { transform: translateY(5px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+    
+        @keyframes popDown {
+            0% { transform: translateY(-5px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
     <div class="overlay"></div>
@@ -18,29 +46,29 @@
         </header>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-5 gap-4 mb-6">
-            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
-                <h2 class="text-lg font-semibold">Confirmed RSVPs</h2>
-                <p class="text-2xl font-bold">{{ confirmed_rsvp }}</p>
-            </div>
-            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
-                <h2 class="text-lg font-semibold">Declined RSVPs</h2>
-                <p class="text-2xl font-bold">{{ declined_rsvp }}</p>
-            </div>
-            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
-                <h2 class="text-lg font-semibold">Total RSVPs</h2>
-                <p class="text-2xl font-bold">{{ total_rsvp }}</p>
-            </div>
-            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
-                <h2 class="text-lg font-semibold">Checked-In Guests</h2>
-                <p class="text-2xl font-bold">{{ total_checked_in }}</p>
-            </div>
-            <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
-                <h2 class="text-lg font-semibold">Total Guests</h2>
-                <p class="text-2xl font-bold">{{ total_guests }}</p>
-            </div>
+    <div class="grid grid-cols-5 gap-4 mb-6">
+        <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+            <h2 class="text-lg font-semibold">Confirmed RSVPs</h2>
+            <p id="confirmedRSVPCard" class="text-2xl font-bold">{{ confirmed_rsvp }}</p>
         </div>
-
+        <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+            <h2 class="text-lg font-semibold">Declined RSVPs</h2>
+            <p id="declinedRSVPCard" class="text-2xl font-bold">{{ declined_rsvp }}</p>
+        </div>
+        <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+            <h2 class="text-lg font-semibold">Total RSVPs</h2>
+            <p id="totalRSVPCard" class="text-2xl font-bold">{{ total_rsvp }}</p>
+        </div>
+        <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+            <h2 class="text-lg font-semibold">Checked-In Guests</h2>
+            <p id="checkedInCard" class="text-2xl font-bold">{{ total_checked_in }}</p>
+        </div>
+        <div class="p-4 bg-white bg-opacity-20 rounded-lg text-center">
+            <h2 class="text-lg font-semibold">Total Guests</h2>
+            <p id="totalGuestsCard" class="text-2xl font-bold">{{ total_guests }}</p>
+        </div>
+    </div>
+        
         <!-- Search Bar -->
         <input type="text" id="search" placeholder="Search guests by name or code..." class="p-2 w-full rounded bg-gray-700 text-white mb-4">
 
@@ -159,10 +187,88 @@
                 }
             })
             .catch(error => console.error("AJAX error:", error));
+        }
+        function animateValue(id, start, end, duration = 500) {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    const range = end - start;
+    let startTime = null;
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const value = Math.floor(start + range * progress);
+        element.textContent = value;
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
     }
 
-    // Poll every 1 seconds
+    window.requestAnimationFrame(step);
+}
+
+let previousStats = {
+    confirmed_rsvp: null,
+    declined_rsvp: null,
+    total_rsvp: null,
+    total_guests: null,
+    total_checked_in: null
+};
+
+function animateStatChange(id, newVal, prevVal) {
+    const card = document.getElementById(id);
+    const arrow = document.createElement("span");
+    arrow.classList.add("stat-change");
+
+    if (prevVal !== null && newVal !== prevVal) {
+        const diff = newVal - prevVal;
+
+        if (diff > 0) {
+            arrow.innerHTML = `<span class="arrow-up">▲</span>`;
+            card.style.color = "green";
+        } else {
+            arrow.innerHTML = `<span class="arrow-down">▼</span>`;
+            card.style.color = "red";
+        }
+
+        card.innerHTML = `${newVal} ${arrow.outerHTML}`;
+
+        // Reset after animation
+        setTimeout(() => {
+            card.textContent = newVal;
+            card.style.color = "";
+        }, 2000);
+    } else {
+        card.textContent = newVal;
+        card.style.color = "";
+    }
+}
+
+function fetchDashboardStats() {
+    fetch('/admin/fetch-dashboard-stats')
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                const data = result.data;
+
+                animateStatChange('confirmedRSVPCard', data.confirmed_rsvp, previousStats.confirmed_rsvp);
+                animateStatChange('declinedRSVPCard', data.declined_rsvp, previousStats.declined_rsvp);
+                animateStatChange('totalRSVPCard', data.total_rsvp, previousStats.total_rsvp);
+                animateStatChange('totalGuestsCard', data.total_guests, previousStats.total_guests);
+                animateStatChange('checkedInCard', data.total_checked_in, previousStats.total_checked_in);
+
+                previousStats = { ...data };
+            } else {
+                console.warn("Dashboard stats fetch failed:", result.message);
+            }
+        })
+        .catch(error => console.error("Stats fetch error:", error));
+}
+
+    // Run both every second
     setInterval(fetchCheckInData, 1000);
+    setInterval(fetchDashboardStats, 1000);
     </script>
 </body>
 </html>

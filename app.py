@@ -526,6 +526,28 @@ def fetch_checkin_data():
     except Exception as e:
         logging.error(f"Error fetching check-in data: {str(e)}")
         return jsonify({'status': 'error', 'message': 'Failed to fetch check-in data.'})
+    
+@app.route('/admin/fetch-dashboard-stats')
+@login_required
+def fetch_dashboard_stats():
+    try:
+        stats_cells = sheet4.range('D2:H2')
+
+        if len(stats_cells) != 5:
+            return jsonify({'status': 'error', 'message': 'Invalid stats format'})
+
+        data = {
+            'confirmed_rsvp': int(stats_cells[0].value or 0),
+            'declined_rsvp': int(stats_cells[1].value or 0),
+            'total_rsvp': int(stats_cells[2].value or 0),
+            'total_guests': int(stats_cells[3].value or 0),
+            'total_checked_in': int(stats_cells[4].value or 0)
+        }
+
+        return jsonify({'status': 'success', 'data': data})
+    except Exception as e:
+        logging.error(f"Error fetching dashboard stats: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'Failed to fetch stats.'})
 
 # --- SEARCH FUNCTIONALITY ---
 @app.route('/admin/search', methods=['POST'])
