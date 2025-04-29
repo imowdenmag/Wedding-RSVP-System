@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify, render_template, redirect, session, url_for, flash
+from flask import send_file
+import io
 import gspread
 from google.oauth2.service_account import Credentials
 import firebase_admin
@@ -79,6 +81,13 @@ try:
     
     # Google Sheets setup
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+    read_credentials = Credentials.from_service_account_file("iamadinkra-ff3a4-864ca2842b01.json", scopes=SCOPES)
+    write_credentials = Credentials.from_service_account_file("iamadinkra-ff3a4-65cdad8107d1.json", scopes=SCOPES)
+
+    gc_read = gspread.authorize(read_credentials)
+    gc_write = gspread.authorize(write_credentials)
+
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
     client = gspread.authorize(creds)
     logging.info("Google Sheets credentials loaded successfully")
@@ -87,19 +96,25 @@ except Exception as e:
     raise
 
 
-# Open Google Sheets
+# Open Google Sheets with separate read and write clients
 try:
-    sheet = client.open("J&O Wedding Guest Data 2025")
-    sheet1 = sheet.worksheet("Master Guest Sheet")
-    sheet2 = sheet.worksheet("Guest Check-In")
-    sheet3 = sheet.worksheet("RSVP Logging")
-    sheet4 = sheet.worksheet("Reference Sheet")
-    logging.info("✅ Connected to Google Sheets successfully!")
+    # READ client sheets
+    sheet_read = gc_read.open("J&O Wedding Guest Data 2025")
+    sheet1_read = sheet_read.worksheet("Master Guest Sheet")
+    sheet4_read = sheet_read.worksheet("Reference Sheet")
+
+    # WRITE client sheets
+    sheet_write = gc_write.open("J&O Wedding Guest Data 2025")
+    sheet1_write = sheet_write.worksheet("Master Guest Sheet")
+    sheet2_write = sheet_write.worksheet("Guest Check-In")
+    sheet3_write = sheet_write.worksheet("RSVP Logging")
+
+    logging.info("✅ Connected to Google Sheets (read/write) successfully!")
 except Exception as e:
     logging.error(f"❌ Error connecting to Google Sheets: {e}")
     raise
 
-demOdata = sheet4.get('D2:H2')
+demOdata = sheet4_read.get('D2:H2')
 
 first_row = next((row for row in demOdata if any(cell.strip() for cell in row)), None)
 
@@ -109,13 +124,14 @@ print("First Confirmed Rsvp Row:", first_row)
 def load_guest_data():
     global guest_data_dict
     try:
-        records = sheet1.get_values()
+        records = sheet1_read.get_values()
         headers = records[0]
         guest_data_dict = {row[1]: dict(zip(headers, row)) for row in records[1:] if len(row) > 1}
         logging.info(f"✅ Loaded {len(guest_data_dict)} guest records into memory.")
     except Exception as e:
         logging.error(f"Failed to load guest data: {str(e)}")
         guest_data_dict = {}
+
 
 load_guest_data()
 
@@ -159,13 +175,12 @@ def rsvp():
     return render_template('rsvp.html')
 
 def find_guest_by_code(code):
-    """Fetch guest details dynamically from Google Sheets."""
     try:
-        records = sheet1.get_all_records()  # Fetch latest data
+        records = sheet1_read.get_all_records()
         for guest in records:
             if guest['GUEST CODE'].strip().upper() == code:
-                return guest  # Return guest details if found
-        return None  # Return None if not found
+                return guest
+        return None
     except Exception as e:
         logging.error(f"Error finding guest by code: {str(e)}")
         return None
@@ -208,28 +223,24 @@ def confirm_attendance():
     logging.info(f"🎟️ Received RSVP - Code: {code}, Attendance: {attendance}")
 
     try:
-        # 🔄 Refresh guest_data_dict from Sheet 1
-        data = sheet1.get_all_records()
+        data = sheet1_read.get_all_records()
         refreshed_guest_dict = {row.get("GUEST CODE", ""): row for row in data}
         guest = refreshed_guest_dict.get(code)
 
         if guest:
-            # Get the correct row number (+2 for 0-index + header)
             row_number = list(refreshed_guest_dict.keys()).index(code) + 2
 
             logging.info(f"📝 Updating RSVP at row {row_number} for guest: {guest.get('GUEST FULL NAME')}")
 
-            # Update RSVP status in column J
-            sheet1.batch_update([{
+            sheet1_write.batch_update([{
                 'range': f'J{row_number}',
                 'majorDimension': 'ROWS',
                 'values': [[attendance]]
             }])
 
-            # Log RSVP response in Sheet 3
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             log_entry = [timestamp, code, guest.get("GUEST FULL NAME", ""), attendance]
-            sheet3.append_row(log_entry)
+            sheet3_write.append_row(log_entry)
 
             logging.info(f"✅ RSVP updated & logged for {code}")
             return jsonify({"status": "success", "message": "Attendance updated and logged successfully"})
@@ -333,7 +344,7 @@ def search_guest():
         return jsonify([])
 
     try:
-        records = sheet1.get_all_records()  # Fetch latest guest data
+        records = sheet1_read.get_all_records()
 
         results = [
             {
@@ -352,27 +363,35 @@ def search_guest():
         return jsonify([])
 
 @app.route('/check-in', methods=['POST'])
+@app.route('/check-in', methods=['POST'])
 def check_in():
     data = request.get_json()
     code = data['code'].strip().upper()
     attendedby = data.get('attendedby', 'Unknown')
-    
+
     guest = find_guest_by_code(code)
 
     if not guest:
         return jsonify({"status": "error", "message": "Guest not found"}), 404
 
     try:
+        # ✅ Check if the code has already been used
+        existing_codes = sheet2_write.col_values(2)  # Column 2 holds the GuestCode
+        if code in existing_codes:
+            return jsonify({"status": "error", "message": "Guest has already checked in"}), 400
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_row = [
-            timestamp, 
-            code, 
-            guest['GUEST FULL NAME'], 
+            timestamp,
+            code,
+            guest['GUEST FULL NAME'],
             guest.get('TABLE ASSIGNED', 'Unknown'),
             attendedby
-            ]
-        sheet2.append_row(new_row)
+        ]
+        sheet2_write.append_row(new_row)
+
         return jsonify({"status": "success", "message": "Check-in successful"})
+
     except Exception as e:
         logging.error(f"Error during check-in: {str(e)}")
         return jsonify({"status": "error", "message": "Failed to check-in guest"}), 500
@@ -385,24 +404,22 @@ def summary():
         return "Guest code not provided", 400
 
     try:
-        # Fetch all guest records from Sheet 1 (Master Guest Sheet)
-        records = sheet1.get_all_records()
+        records = sheet1_read.get_all_records()
         guest_details = next((record for record in records if record['GUEST CODE'] == guest_code), {})
 
         if not guest_details:
             return "Guest not found", 404
 
-        # Fetch check-in data from Sheet 2
-        checkin_records = sheet2.get_all_records()
+        checkin_records = sheet2_write.get_all_records()
         checkin_details = next((rec for rec in checkin_records if rec['GuestCode'] == guest_code), None)
 
         return render_template('summary.html',
-                            code=guest_code,
-                            guest_name=checkin_details.get('GuestName', guest_details.get('GUEST FULL NAME', 'Unknown')) if checkin_details else guest_details.get('GUEST FULL NAME', 'Unknown'),
-                            seating_zone=guest_details.get('SEATING ZONE', 'Unknown'),
-                            table_assigned=guest_details.get('TABLE ASSIGNED', 'Unknown'),
-                            designation=guest_details.get('DESIGNATION', 'Unknown'),
-                            checkin_status="Checked In" if checkin_details else "Not Checked In")
+            code=guest_code,
+            guest_name=checkin_details.get('GuestName', guest_details.get('GUEST FULL NAME', 'Unknown')) if checkin_details else guest_details.get('GUEST FULL NAME', 'Unknown'),
+            seating_zone=guest_details.get('SEATING ZONE', 'Unknown'),
+            table_assigned=guest_details.get('TABLE ASSIGNED', 'Unknown'),
+            designation=guest_details.get('DESIGNATION', 'Unknown'),
+            checkin_status="Checked In" if checkin_details else "Not Checked In")
     except Exception as e:
         logging.error(f"Error generating summary: {str(e)}")
         return "Error generating summary", 500
@@ -477,7 +494,7 @@ def admin_dashboard():
         admin_name = admin_data.get('name', 'Admin')
 
         # Use sheet4 for Reference Sheet
-        reference_sheet = sheet4
+        reference_sheet = sheet4_read
 
        # Fetch stats from Reference Sheet (row 2, cols D to H)
         stats_cells = reference_sheet.range('D2:H2')
@@ -498,7 +515,7 @@ def admin_dashboard():
             raise
 
         # Fetch check-in data from sheet2 (Check-in Sheet)
-        checkin_data = sorted(sheet2.get_all_records(), key=lambda x: x.get('TimeStamp', ''), reverse=False)
+        checkin_data = sorted(sheet2_write.get_all_records(), key=lambda x: x.get('TimeStamp', ''), reverse=False)
 
         return render_template(
             'admin_dashboard.html', 
@@ -515,13 +532,13 @@ def admin_dashboard():
         logging.error(f"Dashboard error: {str(e)}")
         flash("Error loading dashboard", "error")
         return redirect('/admin/login')
-
+    
     # -- Ajax call to update the check-in status -- 
 @app.route('/admin/fetch-checkin-data')
 @login_required
 def fetch_checkin_data():
     try:
-        checkin_data = sorted(sheet2.get_all_records(), key=lambda x: x.get('TimeStamp', ''), reverse=False)
+        checkin_data = sorted(sheet2_write.get_all_records(), key=lambda x: x.get('TimeStamp', ''), reverse=False)
         return jsonify({'status': 'success', 'data': checkin_data})
     except Exception as e:
         logging.error(f"Error fetching check-in data: {str(e)}")
@@ -531,7 +548,7 @@ def fetch_checkin_data():
 @login_required
 def fetch_dashboard_stats():
     try:
-        stats_cells = sheet4.range('D2:H2')
+        stats_cells = sheet4_read.range('D2:H2')
 
         if len(stats_cells) != 5:
             return jsonify({'status': 'error', 'message': 'Invalid stats format'})
@@ -558,7 +575,7 @@ def search_guest_admin():
         return jsonify([])
     
     try:
-        rsvp_data = sheet1.get_all_records()
+        rsvp_data = sheet1_read.get_all_records()
         results = [guest for guest in rsvp_data if search_query in guest['Guest FULL NAME'].lower() or search_query in guest['GUEST CODE'].lower()]
         return jsonify(results)
     except Exception as e:
@@ -574,11 +591,11 @@ def manual_checkin():
         return jsonify({'status': 'error', 'message': 'Guest code required'}), 400
     
     try:
-        rsvp_data = sheet1.get_all_records()
+        rsvp_data = sheet1_read.get_all_records()
         guest = next((g for g in rsvp_data if g['GUEST CODE'] == guest_code), None)
 
         if guest:
-            sheet2.append_row([
+            sheet2_write.append_row([
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 guest['GUEST CODE'],
                 guest['GUEST FULL NAME'],
@@ -605,13 +622,13 @@ def edit_guest():
         return jsonify({'status': 'error', 'message': 'Guest code and name are required'}), 400
 
     try:
-        data = sheet1.get_all_records()
+        data = sheet1_read.get_all_records()
         row_index = next((i for i, g in enumerate(data, start=2) if g['GUEST CODE'] == guest_code), None)
 
         if row_index:
-            sheet1.update(f"C{row_index}", new_name)  # Update Name
+            sheet1_write.update(f"C{row_index}", new_name)  # Update Name
             if new_seating:
-                sheet1.update(f"K{row_index}", new_seating)  # Update Seating Zone
+                sheet1_write.update(f"K{row_index}", new_seating)  # Update Seating Zone
             return jsonify({'status': 'success', 'message': 'Guest details updated!'})
         
         return jsonify({'status': 'error', 'message': 'Guest not found!'}), 404
@@ -628,11 +645,11 @@ def delete_guest():
         return jsonify({'status': 'error', 'message': 'Guest code required'}), 400
 
     try:
-        data = sheet1.get_all_records()
+        data = sheet1_read.get_all_records()
         row_index = next((i for i, g in enumerate(data, start=2) if g['GUEST CODE'] == guest_code), None)
 
         if row_index:
-            sheet1.delete_row(row_index)
+            sheet1_write.delete_row(row_index)
             return jsonify({'status': 'success', 'message': 'Guest record deleted!'})
         
         return jsonify({'status': 'error', 'message': 'Guest not found!'}), 404
@@ -645,13 +662,21 @@ def delete_guest():
 @login_required
 def export_csv():
     try:
-        data = sheet2.get_all_records()
+        data = sheet2_write.get_all_records()
         df = pd.DataFrame(data)
-        csv_path = 'checked_in_guests.csv'
-        df.to_csv(csv_path, index=False)
-        
-        # In production, you would send the file for download
-        return jsonify({'status': 'success', 'message': 'CSV exported!', 'path': csv_path})
+
+        # Use in-memory buffer instead of saving to disk
+        csv_buffer = io.StringIO()
+        df.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
+
+        return send_file(
+            io.BytesIO(csv_buffer.getvalue().encode('utf-8')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='checked_in_guests.csv'
+        )
+
     except Exception as e:
         logging.error(f"Export CSV error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'Failed to export CSV'}), 500
@@ -668,12 +693,12 @@ def health_check():
         return jsonify({
             'status': 'healthy',
             'database': 'connected',
-            'sheets': 'connected' if sheet1 else 'disconnected'
+            'sheets': 'connected' if sheet1_read else 'disconnected'
         }), 200
     return jsonify({
         'status': 'unhealthy',
         'database': 'disconnected',
-        'sheets': 'connected' if sheet1 else 'disconnected'
+        'sheets': 'connected' if sheet1_read else 'disconnected'
     }), 503
 
 if __name__ == '__main__':

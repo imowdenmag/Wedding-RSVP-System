@@ -42,6 +42,15 @@
     <div class="dashboard-container">
         <header>
             <h1 class="admin-title">Hello, {{ name_of_admin }}</h1>
+            <div class="flex items-center justify-end gap-4 my-4">
+                <button onclick="manualRefresh()" class="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                    Refresh
+                </button>
+                <div id="refreshSpinner" style="display:none;">
+                    <span class="loader"></span> <!-- Replace with your preferred spinner -->
+                </div>
+                <span id="lastRefreshedText" class="text-sm text-gray-200">Last refreshed: just now</span>
+            </div>
             <a href="/admin/logout" class="logout-button">Logout</a>
         </header>
 
@@ -67,6 +76,7 @@
             <h2 class="text-lg font-semibold">Total Guests</h2>
             <p id="totalGuestsCard" class="text-2xl font-bold">{{ total_guests }}</p>
         </div>
+        
     </div>
         
         <!-- Search Bar -->
@@ -116,93 +126,89 @@
     <!-- JavaScript -->
     <script>
         document.getElementById("search").addEventListener("input", function () {
-            let searchQuery = this.value.toLowerCase();
-            let rows = document.querySelectorAll("#guest-list tr");
-            
-            rows.forEach(row => {
-                let name = row.cells[0].innerText.toLowerCase();
-                let code = row.cells[1].innerText.toLowerCase();
-                row.style.display = (name.includes(searchQuery) || code.includes(searchQuery)) ? "" : "none";
-            });
+    const query = this.value.toLowerCase();
+    document.querySelectorAll("#guest-list tr").forEach(row => {
+        const name = row.cells[0]?.innerText.toLowerCase() || "";
+        const code = row.cells[1]?.innerText.toLowerCase() || "";
+        row.style.display = (name.includes(query) || code.includes(query)) ? "" : "none";
+    });
+});
+
+function editGuest(code, name, seating) {
+    const newName = prompt("Edit Guest Name:", name);
+    const newSeating = prompt("Edit Seating Zone:", seating);
+    if (newName && newSeating) {
+        fetch("/admin/edit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ guest_code: code, new_name: newName, new_seating: newSeating })
+        }).then(res => res.json()).then(data => {
+            if (data.status === "success") location.reload();
+            else alert(data.message);
         });
+    }
+}
 
-        function editGuest(code, name, seating) {
-            let newName = prompt("Edit Guest Name:", name);
-            let newSeating = prompt("Edit Seating Zone:", seating);
-            if (newName && newSeating) {
-                fetch("/admin/edit", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ guest_code: code, new_name: newName, new_seating: newSeating })
-                }).then(response => response.json()).then(data => {
-                    if (data.status === "success") location.reload();
-                    else alert(data.message);
+function deleteGuest(code) {
+    if (confirm("Are you sure you want to delete this guest?")) {
+        fetch("/admin/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ guest_code: code })
+        }).then(res => res.json()).then(data => {
+            if (data.status === "success") location.reload();
+            else alert(data.message);
+        });
+    }
+}
+
+function exportCSV() {
+    fetch("/admin/export/csv")
+        .then(res => res.json())
+        .then(data => {
+            alert(data.status === "success" ? "CSV exported successfully!" : "Export failed.");
+        });
+}
+
+function fetchCheckInData() {
+    fetch('/admin/fetch-checkin-data')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                const guestList = document.getElementById("guest-list");
+                guestList.innerHTML = "";
+                data.data.forEach(record => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${record.GuestName}</td>
+                        <td>${record.GuestCode}</td>
+                        <td>${record.Seating || ''}</td>
+                        <td>${record.TimeStamp}</td>
+                        <td>${record.AttendedBy || ''}</td>
+                    `;
+                    guestList.appendChild(row);
                 });
+            } else {
+                console.error("Error fetching check-in data:", data.message);
             }
-        }
+        })
+        .catch(error => console.error("AJAX error:", error));
 
-        function deleteGuest(code) {
-            if (confirm("Are you sure you want to delete this guest?")) {
-                fetch("/admin/delete", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ guest_code: code })
-                }).then(response => response.json()).then(data => {
-                    if (data.status === "success") location.reload();
-                    else alert(data.message);
-                });
-            }
-        }
+        updateLastRefreshed();
+        document.getElementById("refreshSpinner").style.display = "none"; // Hide spinner after refresh
+}
 
-        function exportCSV() {
-            fetch("/admin/export/csv").then(response => response.json()).then(data => {
-                if (data.status === "success") alert("CSV exported successfully!");
-                else alert("Export failed.");
-            });
-        }
-
-        function fetchCheckInData() {
-        fetch('/admin/fetch-checkin-data')
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    const guestList = document.getElementById("guest-list");
-                    guestList.innerHTML = ""; // Clear existing rows
-
-                    data.data.forEach(record => {
-                        const row = document.createElement("tr");
-
-                        row.innerHTML = `
-                            <td>${record.GuestName}</td>
-                            <td>${record.GuestCode}</td>
-                            <td>${record.Seating || ''}</td>
-                            <td>${record.TimeStamp}</td>
-                            <td>${record.AttendedBy || ''}</td>
-                        `;
-
-                        guestList.appendChild(row);
-                    });
-                } else {
-                    console.error("Error fetching check-in data:", data.message);
-                }
-            })
-            .catch(error => console.error("AJAX error:", error));
-        }
-        function animateValue(id, start, end, duration = 500) {
-    const element = document.getElementById(id);
-    if (!element) return;
-
+function animateValue(id, start, end, duration = 500) {
+    const el = document.getElementById(id);
+    if (!el) return;
     const range = end - start;
     let startTime = null;
 
     function step(timestamp) {
         if (!startTime) startTime = timestamp;
         const progress = Math.min((timestamp - startTime) / duration, 1);
-        const value = Math.floor(start + range * progress);
-        element.textContent = value;
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
+        el.textContent = Math.floor(start + range * progress);
+        if (progress < 1) window.requestAnimationFrame(step);
     }
 
     window.requestAnimationFrame(step);
@@ -218,23 +224,16 @@ let previousStats = {
 
 function animateStatChange(id, newVal, prevVal) {
     const card = document.getElementById(id);
+    if (!card) return;
+
     const arrow = document.createElement("span");
     arrow.classList.add("stat-change");
 
     if (prevVal !== null && newVal !== prevVal) {
         const diff = newVal - prevVal;
-
-        if (diff > 0) {
-            arrow.innerHTML = `<span class="arrow-up">▲</span>`;
-            card.style.color = "green";
-        } else {
-            arrow.innerHTML = `<span class="arrow-down">▼</span>`;
-            card.style.color = "red";
-        }
-
+        arrow.innerHTML = diff > 0 ? `<span class="arrow-up">▲</span>` : `<span class="arrow-down">▼</span>`;
+        card.style.color = diff > 0 ? "green" : "red";
         card.innerHTML = `${newVal} ${arrow.outerHTML}`;
-
-        // Reset after animation
         setTimeout(() => {
             card.textContent = newVal;
             card.style.color = "";
@@ -247,28 +246,49 @@ function animateStatChange(id, newVal, prevVal) {
 
 function fetchDashboardStats() {
     fetch('/admin/fetch-dashboard-stats')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(result => {
             if (result.status === 'success') {
-                const data = result.data;
-
-                animateStatChange('confirmedRSVPCard', data.confirmed_rsvp, previousStats.confirmed_rsvp);
-                animateStatChange('declinedRSVPCard', data.declined_rsvp, previousStats.declined_rsvp);
-                animateStatChange('totalRSVPCard', data.total_rsvp, previousStats.total_rsvp);
-                animateStatChange('totalGuestsCard', data.total_guests, previousStats.total_guests);
-                animateStatChange('checkedInCard', data.total_checked_in, previousStats.total_checked_in);
-
-                previousStats = { ...data };
+                const stats = result.data;
+                animateStatChange('confirmedRSVPCard', stats.confirmed_rsvp, previousStats.confirmed_rsvp);
+                animateStatChange('declinedRSVPCard', stats.declined_rsvp, previousStats.declined_rsvp);
+                animateStatChange('totalRSVPCard', stats.total_rsvp, previousStats.total_rsvp);
+                animateStatChange('totalGuestsCard', stats.total_guests, previousStats.total_guests);
+                animateStatChange('checkedInCard', stats.total_checked_in, previousStats.total_checked_in);
+                previousStats = { ...stats };
             } else {
                 console.warn("Dashboard stats fetch failed:", result.message);
             }
         })
-        .catch(error => console.error("Stats fetch error:", error));
+        .catch(err => console.error("Stats fetch error:", err));
 }
 
-    // Run both every second
-    setInterval(fetchCheckInData, 1000);
-    setInterval(fetchDashboardStats, 1000);
+function updateLastRefreshed() {
+    const now = new Date();
+    const formatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const label = document.getElementById("lastRefreshedText");
+    if (label) label.textContent = `Last refreshed: ${formatted}`;
+}
+
+function manualRefresh() {
+    document.getElementById("refreshSpinner").style.display = "inline-block"; // Show spinner
+    fetchCheckInData();
+    fetchDashboardStats();
+    updateLastRefreshed();
+}
+
+// Initial Load
+fetchCheckInData();
+fetchDashboardStats();
+updateLastRefreshed();
+
+// Auto Refresh every 5 minutes
+setInterval(() => {
+    fetchCheckInData();
+    fetchDashboardStats();
+    updateLastRefreshed();
+}, 3600000);
+
     </script>
 </body>
 </html>

@@ -169,6 +169,15 @@ img {
   z-index: 1000; /* Ensures
    it's above other content */
 }
+
+/* Response message */
+.response-message {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: rgba(241, 47, 47, 0.961);
+}
+
 @keyframes spin {
   to {
       transform: rotate(360deg);
