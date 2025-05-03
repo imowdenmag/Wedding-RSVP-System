@@ -1,216 +1,217 @@
-/* Import Poppins font */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
-/* Background Image */
-body {
-    background: url("/static/images/SCREEN_ADINKRA\ SCREEN.jpg") no-repeat center center/cover;
-    font-family: "Poppins", sans-serif;
-    color: #e0e0e0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    height: 100vh;
+/* Modern Dark Theme CSS - Updated Stats Layout */
+:root {
+    --bg-dark: #121218;
+    --bg-darker: #0a0a0f;
+    --card-bg: #1e1e2a;
+    --card-hover: #2a2a3a;
+    --text-light: #f0f0f5;
+    --text-muted: #a0a0b0;
+    --accent: #6d78ff;
+    --accent-hover: #7d87ff;
+    --border: #2d2d3a;
+    --success: #4caf50;
+    --warning: #ff9800;
+    --danger: #f44336;
+  }
+  
+  /* Base Styles */
+  body {
+    background: var(--bg-dark);
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-light);
     margin: 0;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Dark overlay for contrast */
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .dashboard-container {
     width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 1;
-}
-
-/* Dashboard Container */
-.dashboard-container {
-    position: relative;
-    width: 90%;
-    max-width: 900px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    animation: fadeIn 0.8s ease-in-out;
-    z-index: 2;
-    max-height: 90vh; /* Prevent overflow */
+    max-width: 1800px;
+    background: var(--bg-darker);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    margin: 20px auto;
     display: flex;
     flex-direction: column;
-}
-
-.loader {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3498db;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
+    min-height: calc(100vh - 40px);
   }
   
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  
-/* Header */
+  /* Header */
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 8px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
+    padding: 16px 24px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .admin-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
 
-.admin-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #ffffff;
-}
-
-/* Logout Button */
-.logout-button {
-    background: #e63946;
-    color: #fff;
-    padding: 8px 15px;
+  .logout-button {
+    /* Padding */
+    padding: 0.5rem;
+    background-color: #dc2626;
+    color: white;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s ease-in-out;
-}
-
-.logout-button:hover {
-    background: #c92d3f;
-}
-
-/* Summary Cards */
-.summary-container {
+    border-radius: 0.25rem; /* rounded equivalent */
+    
+    /* Hover state */
+    transition: background-color 0.2s ease-in-out; /* transition equivalent */
+  }
+  
+  .logout-button:hover {
+    background-color: #b91c1c; /* hover:bg-red-700 equivalent */
+  }
+  
+  /* Stats Section - Full Width Layout */
+  .stats-section {
+    padding: 20px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Flexible columns */
-    gap: 15px;
-    margin: 10px 0;
-    position: sticky;
-    top: 50px;
-    z-index: 99;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+  }
+  
+  .stat-card {
+    background: var(--card-bg);
     border-radius: 8px;
-}
-
-.summary-card {
+    min-width: 180px; /* Wider minimum width */
+    padding: 16px 8px; /* More horizontal padding */
     text-align: center;
-    padding: 20px 10px;
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 1.4;
-    color: #fff;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border);
+    min-height: 100px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
-
-/* Search Bar */
-#search {
+  }
+  
+  .stat-card h2 {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 8px 0;
+    color: var(--text-muted);
+  }
+  
+  .stat-card p {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+    display: block;
+    will-change: contents; /* Optimizes for text changes */
     width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    outline: none;
-    margin-bottom: 10px;
-}
+  }
 
-/* Table Container */
-.table-container {
+  #inkoroduCard::after,
+  [id$="Card"]::after { /* Targets all elements ending with "Card" */
+    content: "/" attr(data-capacity);
+    margin-left: 2px;
+    font-size: 1.75rem;
+    opacity: 0.8;
+  }
+  
+  /* Guest List Section */
+.guest-list-section {
+    padding: 0 20px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Table Container */
+  .table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-height: 50vh; /* Adjust this value as needed */
     overflow-y: auto;
-    flex-grow: 1; /* Allow table to expand */
-    max-height: 55vh;
-}
-
-/* Table Styling */
-table {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  
+  /* Table Styling */
+  table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.15);
-}
-
-/* Table Header */
-thead {
+  }
+  
+  thead {
     position: sticky;
-    top: 0; /* Ensure it sticks at the top of the table */
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 100; /* Keep it above other elements */
-}
-
-
-th {
-    color: #ffffff;
-    font-weight: bold;
-    padding: 12px;
-}
-
-/* Table Data */
-td {
-    background: rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 12px;
-}
-
-/* Table Row Hover */
-tbody tr:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transition: 0.3s ease-in-out;
-}
-
-/* Fade-in Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.stat-updated {
-    animation: pulseUpdate 0.3s ease-in-out;
-}
-
-@keyframes pulseUpdate {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* Export Button */
-.export-btn {
-    display: block;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 10;
+  }
+  
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  tbody tr:hover {
+    background: var(--card-bg);
+  }
+  
+  /* Search Bar */
+  #search {
     width: 100%;
-    text-align: center;
-    padding: 10px;
-    background: #28a745;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-light);
+  }
+  
+  /* Export Button */
+  .export-btn {
+    background: var(--success);
     color: white;
-    border-radius: 5px;
-    margin-top: 10px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.3s ease-in-out;
-}
-
-.export-btn:hover {
-    background: #218838;
-}
+    margin-top: 16px;
+    align-self: flex-start;
+  }
+  
+  
+  /* Responsive Adjustments */
+  @media (max-width: 1200px) {
+    .stats-section {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .stats-section {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-card {
+      min-height: 80px;
+      padding: 12px;
+    }
+    
+    .stat-card h2 {
+      font-size: 0.9rem;
+    }
+    
+    .stat-card p {
+      font-size: 1.5rem;
+    }
+  }

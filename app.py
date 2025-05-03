@@ -363,7 +363,6 @@ def search_guest():
         return jsonify([])
 
 @app.route('/check-in', methods=['POST'])
-@app.route('/check-in', methods=['POST'])
 def check_in():
     data = request.get_json()
     code = data['code'].strip().upper()
@@ -498,6 +497,43 @@ def admin_dashboard():
 
        # Fetch stats from Reference Sheet (row 2, cols D to H)
         stats_cells = reference_sheet.range('D2:H2')
+        seating_cells = reference_sheet.range('J2:AH2')
+
+        if len(seating_cells) != 25:
+            logging.error(f"🔥Expected 25 cells in range J2:AH2, got {len(seating_cells)}")
+            raise ValueError("Reference sheet format error.")
+
+        # Extract and safely parse each value
+        try:
+            kyebi = int(seating_cells[0].value or 0)
+            inkorodu = int(seating_cells[1].value or 0)
+            osu = int(seating_cells[2].value or 0)
+            konongo = int(seating_cells[3].value or 0)
+            jo_squad = int(seating_cells[4].value or 0)
+            table_1 = int(seating_cells[5].value or 0)
+            table_2 = int(seating_cells[6].value or 0)
+            table_3 = int(seating_cells[7].value or 0)
+            table_4 = int(seating_cells[8].value or 0)
+            table_5 = int(seating_cells[9].value or 0)
+            table_6 = int(seating_cells[10].value or 0)
+            table_7 = int(seating_cells[11].value or 0)
+            table_8 = int(seating_cells[12].value or 0)
+            table_9 = int(seating_cells[13].value or 0)
+            table_10 = int(seating_cells[14].value or 0)
+            table_11 = int(seating_cells[15].value or 0)
+            table_12 = int(seating_cells[16].value or 0)
+            table_13 = int(seating_cells[17].value or 0)
+            table_14 = int(seating_cells[18].value or 0)
+            table_15 = int(seating_cells[19].value or 0)
+            table_16 = int(seating_cells[20].value or 0)
+            table_17 = int(seating_cells[21].value or 0)
+            table_18 = int(seating_cells[22].value or 0)
+            table_19 = int(seating_cells[23].value or 0)
+            high_table = int(seating_cells[23].value or 0)
+        except ValueError as e:
+            logging.error(f"Invalid numeric value in Reference Sheet: {e}")
+            raise
+
 
         if len(stats_cells) != 5:
             logging.error(f"🔥Expected 5 cells in range D2:H2, got {len(stats_cells)}")
@@ -525,7 +561,32 @@ def admin_dashboard():
             total_rsvp=total_rsvp,
             total_checked_in=total_checked_in,
             total_guests=total_guests,
-            checkin_data=checkin_data
+            checkin_data=checkin_data,
+            kyebi=kyebi,
+            inkorodu=inkorodu,
+            osu=osu,
+            konongo=konongo,
+            jo_squad=jo_squad,
+            table_1=table_1,
+            table_2=table_2,
+            table_3=table_3,
+            table_4=table_4,
+            table_5=table_5,
+            table_6=table_6,
+            table_7=table_7,
+            table_8=table_8,
+            table_9=table_9,
+            table_10=table_10,
+            table_11=table_11,
+            table_12=table_12,
+            table_13=table_13,
+            table_14=table_14,
+            table_15=table_15,
+            table_16=table_16,
+            table_17=table_17,
+            table_18=table_18,
+            table_19=table_19,
+            high_table=high_table
         )
 
     except Exception as e:
@@ -549,6 +610,10 @@ def fetch_checkin_data():
 def fetch_dashboard_stats():
     try:
         stats_cells = sheet4_read.range('D2:H2')
+        seating_cells = sheet4_read.range('J2:AH2')
+
+        if len(seating_cells) != 25:
+            return jsonify({'status': 'error', 'message': 'Invalid seating format'})
 
         if len(stats_cells) != 5:
             return jsonify({'status': 'error', 'message': 'Invalid stats format'})
@@ -558,7 +623,32 @@ def fetch_dashboard_stats():
             'declined_rsvp': int(stats_cells[1].value or 0),
             'total_rsvp': int(stats_cells[2].value or 0),
             'total_guests': int(stats_cells[3].value or 0),
-            'total_checked_in': int(stats_cells[4].value or 0)
+            'total_checked_in': int(stats_cells[4].value or 0),
+            'kyebi': int(seating_cells[0].value or 0),
+            'inkorodu': int(seating_cells[1].value or 0),
+            'osu': int(seating_cells[2].value or 0),
+            'konongo': int(seating_cells[3].value or 0),
+            'jo_squad': int(seating_cells[4].value or 0),
+            'table_1': int(seating_cells[5].value or 0),
+            'table_2': int(seating_cells[6].value or 0),
+            'table_3': int(seating_cells[7].value or 0),
+            'table_4': int(seating_cells[8].value or 0),
+            'table_5': int(seating_cells[9].value or 0),
+            'table_6': int(seating_cells[10].value or 0),
+            'table_7': int(seating_cells[11].value or 0),
+            'table_8': int(seating_cells[12].value or 0),
+            'table_9': int(seating_cells[13].value or 0),
+            'table_10': int(seating_cells[14].value or 0),
+            'table_11': int(seating_cells[15].value or 0),
+            'table_12': int(seating_cells[16].value or 0),
+            'table_13': int(seating_cells[17].value or 0),
+            'table_14': int(seating_cells[18].value or 0),
+            'table_15': int(seating_cells[19].value or 0),
+            'table_16': int(seating_cells[20].value or 0),
+            'table_17': int(seating_cells[21].value or 0),
+            'table_18': int(seating_cells[22].value or 0),
+            'table_19': int(seating_cells[23].value or 0),
+            'high_table': int(seating_cells[24].value or 0)
         }
 
         return jsonify({'status': 'success', 'data': data})
@@ -702,5 +792,6 @@ def health_check():
     }), 503
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    # port = int(os.environ.get("PORT", 8080))
+    # app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(debug=True)
