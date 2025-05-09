@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, session, url_for, flash
+from flask import Flask, request, jsonify, render_template, redirect, session, url_for, flash, Response
 from flask import send_file
 import io
 import gspread
@@ -497,15 +497,15 @@ def admin_dashboard():
 
        # Fetch stats from Reference Sheet (row 2, cols D to H)
         stats_cells = reference_sheet.range('D2:H2')
-        seating_cells = reference_sheet.range('J2:AH2')
+        seating_cells = reference_sheet.range('J2:AG2')
 
-        if len(seating_cells) != 25:
-            logging.error(f"🔥Expected 25 cells in range J2:AH2, got {len(seating_cells)}")
+        if len(seating_cells) != 24:
+            logging.error(f"Expected 24 cells in range J2:AH2, got {len(seating_cells)}")
             raise ValueError("Reference sheet format error.")
 
         # Extract and safely parse each value
         try:
-            kyebi = int(seating_cells[0].value or 0)
+            kyebi = int(seating_cells[0].value or 0),
             inkorodu = int(seating_cells[1].value or 0)
             osu = int(seating_cells[2].value or 0)
             konongo = int(seating_cells[3].value or 0)
@@ -528,7 +528,6 @@ def admin_dashboard():
             table_16 = int(seating_cells[20].value or 0)
             table_17 = int(seating_cells[21].value or 0)
             table_18 = int(seating_cells[22].value or 0)
-            table_19 = int(seating_cells[23].value or 0)
             high_table = int(seating_cells[23].value or 0)
         except ValueError as e:
             logging.error(f"Invalid numeric value in Reference Sheet: {e}")
@@ -585,7 +584,6 @@ def admin_dashboard():
             table_16=table_16,
             table_17=table_17,
             table_18=table_18,
-            table_19=table_19,
             high_table=high_table
         )
 
@@ -610,9 +608,9 @@ def fetch_checkin_data():
 def fetch_dashboard_stats():
     try:
         stats_cells = sheet4_read.range('D2:H2')
-        seating_cells = sheet4_read.range('J2:AH2')
+        seating_cells = sheet4_read.range('J2:AG2')
 
-        if len(seating_cells) != 25:
+        if len(seating_cells) != 24:
             return jsonify({'status': 'error', 'message': 'Invalid seating format'})
 
         if len(stats_cells) != 5:
@@ -647,8 +645,7 @@ def fetch_dashboard_stats():
             'table_16': int(seating_cells[20].value or 0),
             'table_17': int(seating_cells[21].value or 0),
             'table_18': int(seating_cells[22].value or 0),
-            'table_19': int(seating_cells[23].value or 0),
-            'high_table': int(seating_cells[24].value or 0)
+            'high_table': int(seating_cells[23].value or 0)
         }
 
         return jsonify({'status': 'success', 'data': data})
@@ -752,25 +749,31 @@ def delete_guest():
 @login_required
 def export_csv():
     try:
+        # Get data from Google Sheet
         data = sheet2_write.get_all_records()
         df = pd.DataFrame(data)
 
-        # Use in-memory buffer instead of saving to disk
-        csv_buffer = io.StringIO()
-        df.to_csv(csv_buffer, index=False)
-        csv_buffer.seek(0)
+        # Create in-memory file-like object
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
 
-        return send_file(
-            io.BytesIO(csv_buffer.getvalue().encode('utf-8')),
-            mimetype='text/csv',
-            as_attachment=True,
-            download_name='checked_in_guests.csv'
+        # Create response with proper headers
+        response = Response(
+            output.getvalue(),
+            mimetype="text/csv",
+            headers={
+                "Content-Disposition": "attachment;filename=checked_in_guests.csv",
+                "Content-Type": "text/csv; charset=utf-8"
+            }
         )
+
+        return response
 
     except Exception as e:
         logging.error(f"Export CSV error: {str(e)}")
         return jsonify({'status': 'error', 'message': 'Failed to export CSV'}), 500
-
+    
 @app.errorhandler(404)
 def handle_404(e):
     return render_template('404error.html'), 404

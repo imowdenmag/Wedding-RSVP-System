@@ -64,19 +64,19 @@
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">KYEBI</h2>
-                <p id="kyebiCard" class="text-2xl font-bold" data-capacity="78">{{ kyebi }}</p>
+                <p id="kyebiCard" class="text-2xl font-bold" data-capacity="0">{{ kyebi }}</p>
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">IKORODU</h2>
-                <p id="inkoroduCard" class="text-2xl font-bold" data-capacity="140">{{ inkorodu }}</p>
+                <p id="inkoroduCard" class="text-2xl font-bold" data-capacity="114">{{ inkorodu }}</p>
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">OSU</h2>
-                <p id="osuCard" class="text-2xl font-bold" data-capacity="88">{{ osu }}</p>
+                <p id="osuCard" class="text-2xl font-bold" data-capacity="101">{{ osu }}</p>
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">KONONGO</h2>
-                <p id="konongoCard" class="text-2xl font-bold" data-capacity="92">{{ konongo }}</p>
+                <p id="konongoCard" class="text-2xl font-bold" data-capacity="0">{{ konongo }}</p>
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">JO SQUAD</h2>
@@ -88,7 +88,7 @@
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">TABLE 1</h2>
-                <p id="table1Card" class="text-2xl font-bold" data-capacity="10">{{ table_1 }}</p>
+                <p id="table1Card" class="text-2xl font-bold" data-capacity="24">{{ table_1 }}</p>
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">TABLE 2</h2>
@@ -157,10 +157,6 @@
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">TABLE 18</h2>
                 <p id="table18Card" class="text-2xl font-bold" data-capacity="16">{{ table_18 }}</p>
-            </div>
-            <div class="stat-card">
-                <h2 class="text-lg font-semibold">TABLE 19</h2>
-                <p id="table19Card" class="text-2xl font-bold" data-capacity="∞">{{ table_19 }}</p>
             </div>
             <div class="stat-card">
                 <h2 class="text-lg font-semibold">Declined RSVPs</h2>
@@ -323,7 +319,7 @@ let previousStats = {
     total_guests: null,
     total_checked_in: null,
     kyebi: null,
-    ikorodu: null,
+    inkorodu: null,
     osu: null,
     konongo: null,
     jo_squad: null,
@@ -345,7 +341,6 @@ let previousStats = {
     table_16: null,
     table_17: null,
     table_18: null,
-    table_19: null,
     high_table: null
 };
 
@@ -384,11 +379,11 @@ function fetchDashboardStats() {
                 animateStatChange('totalGuestsstat', stats.total_guests, previousStats.total_guests);
                 animateStatChange('checkedInstat', stats.total_checked_in, previousStats.total_checked_in);
                 animateStatChange('kyebiCard', stats.kyebi, previousStats.kyebi);
-                animateStatChange('inkoroduCard', stats.ikorodu, previousStats.ikorodu); // Fixed ID to match HTML
+                animateStatChange('inkoroduCard', stats.inkorodu, previousStats.inkorodu); // Fixed ID to match HTML
                 animateStatChange('osuCard', stats.osu, previousStats.osu);
                 animateStatChange('konongoCard', stats.konongo, previousStats.konongo);
                 animateStatChange('joSquadCard', stats.jo_squad, previousStats.jo_squad);
-                animateStatChange('table1Card', stats.table1, previousStats.table1);
+                animateStatChange('table1Card', stats.table_1, previousStats.table_1);
                 animateStatChange('table2Card', stats.table_2, previousStats.table_2); // Fixed ID to match HTML
                 animateStatChange('table3Card', stats.table_3, previousStats.table_3); // Fixed ID to match HTML
                 animateStatChange('table4Card', stats.table_4, previousStats.table_4); // Fixed ID to match HTML
@@ -406,7 +401,6 @@ function fetchDashboardStats() {
                 animateStatChange('table16Card', stats.table_16, previousStats.table_16); // Fixed ID to match HTML
                 animateStatChange('table17Card', stats.table_17, previousStats.table_17); // Fixed ID to match HTML
                 animateStatChange('table18Card', stats.table_18, previousStats.table_18); // Fixed ID to match HTML
-                animateStatChange('table19Card', stats.table_19, previousStats.table_19); // Fixed ID to match HTML
                 animateStatChange('highTableCard', stats.high_table, previousStats.high_table);
                 previousStats = { ...stats };
             } else {
