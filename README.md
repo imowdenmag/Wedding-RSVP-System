@@ -4,24 +4,24 @@ A modern web application for managing RSVPs and check-ins at weddings and events
 
 ---
 
-## ✨ Features
+## Features
 
-### 📝 RSVP Portal
+### RSVP Portal
 - Guests can enter a unique code to RSVP.
 - Real-time verification from Google Sheets.
 - Dynamic update of RSVP status.
 
-### ✅ Check-In System
+### Check-In System
 - Guests are verified at entry with their unique codes.
 - Live guest search with auto-fill and editable fields.
 - Check-in timestamps logged.
 - Writes checked-in data to a separate sheet.
 
-### 🔒 Authentication
+### Authentication
 - Separate login portals for Admin and Check-In staff.
 - Firestore (Firebase) is used for secure credential storage.
 
-### 📊 Admin Dashboard
+### Admin Dashboard
 - Card summaries: Confirmed, Declined, Checked-In, Total.
 - View RSVP responses and check-in data in real-time.
 - Live data animations (green ▲ increase, red ▼ decrease).
@@ -29,15 +29,16 @@ A modern web application for managing RSVPs and check-ins at weddings and events
 - Export data as CSV, XLS, or PDF.
 
 ### 🌐 Tech Stack
-| Frontend        | Backend          | Database          | Deployment       |
-|-----------------|------------------|-------------------|------------------|
-| HTML, CSS, JS   | Python, Flask    | Google Sheets, MySQL, Firestore | Google Cloud Run |
+
+| Frontend        | Backend       | Database                          | Deployment         |
+|-----------------|---------------|-----------------------------------|--------------------|
+| HTML, CSS, JS   | Python, Flask | Google Sheets, MySQL, Firestore  | Google Cloud Run   |
 
 ---
 
-## 🛠️ Setup Instructions
+## Setup Instructions
 
-### 🔧 Prerequisites
+### Prerequisites
 - Python 3.10+
 - Node.js (for optional frontend tooling)
 - Firebase Project (for Firestore)
@@ -45,111 +46,78 @@ A modern web application for managing RSVPs and check-ins at weddings and events
 - MySQL Server (optional for advanced logging)
 - Git
 
-### 1️⃣ Clone the Repository
+### 1 Clone the Repository
 ```bash
-git clone https://github.com/your-username/wedding-rsvp-checkin.git
+git clone https://github.com/imowdenmag/Wedding-RSVP-System
 cd wedding-rsvp-checkin
 
+### 2 Set Up Python Environment
 
-## Set Up Python Environment
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 pip install -r requirements.txt
 
-
-## Configure Environment Variables
-Create a .env file
-
+### 3 Configure Environment Variables
+Create a .env file with the following keys:
 GOOGLE_SHEETS_CREDENTIALS_JSON=credentials.json
 SHEET_ID=your_google_sheet_id
 FIREBASE_CREDENTIALS=firebase-adminsdk.json
 FLASK_SECRET_KEY=your_secret_key
 
-🔐 Ensure .env and credential files are added to .gitignore.
+Ensure .env and credential files are added to .gitignore.
+
+### 4 Set Up Google Sheets
+-Sheet 1: RSVP List
+-Sheet 2: Check-In Log
+-Headers should match exactly:
+
+RSVP Sheet:
+-GUEST CODE, RSVP STATUS, SEATING ZONE, etc.
+
+Check-In Sheet:
+-TimeStamp, GuestCode, GuestName, etc.
+
+### 5 Configure Firestore (Firebase)
+-Create a Firebase project.
+-Enable Firestore in test mode.
+-Create collections for check-in data and admin users.
+
+### 6 Run the application
+-python app.py
+
+### Features In Progress
+-QR code scanning for Check-In
+-Dashboard analytics (graphs)
+-Guest tag printing
+-SMS/Email Rsvp confirmations.
+
+### Deployment
+Deployed using Google Cloud Run
+
+### Project Structure
+
+wedding-rsvp-system/
+├── static/            # JS, CSS, assets
+├── templates/         # HTML templates
+├── gitignore             # gitignore
+├── app.py             # Entry point
+├── Dockerfile          # Configuration
+├── requirements.txt   # Dependencies
+└── test.py
 
 
-### Set Up Google Sheets
-Sheet 1: RSVP List
+### Contributors
+- Owden Magnusen - Lead Developer
+- Rachael Gapkey - UI/UX Designer
+- Owden Magnusen - Backend Developer
 
-Sheet 2: Check-In Log
+### Client 
+-iamadinkra
 
-Make sure column headers match exactly:
+### License
+This project is licensed under the MIT License
 
-RSVP Sheet: GUEST CODE, RSVP STATUS, SEATING ZONE, etc.
-
-Check-In Sheet: TimeStamp, GuestCode, GuestName, etc.
-
-### 5️⃣ Configure Firestore (Firebase)
-Create a Firebase project.
-
-Enable Firestore in test mode.
-
-Create a collection for check-in and admin users.
-
-### 6️⃣ Run the Application
-
-## Features In Progress
-QR code scanning for check-in.
-
-Dashboard analytics (graphs).
-
-Guest tag printing.
-
-SMS/email RSVP confirmations.
-
-## Deployment
-This app is ready for cloud deployment via Google Cloud Run:
-
-gcloud run deploy \
-  --source . \
-  --platform managed \
-  --region YOUR_REGION \
-  --allow-unauthenticated \
-  --project YOUR_PROJECT_ID
-
-Make sure to:
-
-Add secrets to GCP environment variables.
-
-Use Secret Manager for JSON credentials.
-
-##  Project Structure
-wedding-rsvp-checkin/
-│
-├── static/                  # JS, CSS, assets
-├── templates/               # HTML templates
-├── auth/                    # Firestore login logic
-├── routes/                  # Flask route definitions
-├── sheets/                  # Google Sheets logic
-├── checkin/                 # Check-in logic & views
-├── admin/                   # Admin dashboard features
-├── app.py                   # Entry point
-├── requirements.txt
-└── .env.example
-
-
-## Contributors
-Owden Magnusen – Lead Developer
-
-👩🏽‍💻 Owden Magnusen - Visual Designer
-
-📊 Owden Magnusen - Data Management
-
-🎨 Rachael Gapkey - Graphics and Assests for the project
-
-## Client
-iamadinkra. (iamadinkra.com)
-
-
-## License
-This project is licensed under the MIT License. See LICENSE file for more info.
-
-## 💡 Inspiration
-Built to simplify guest coordination at a high-scale, elegant wedding. Designed with speed, clarity, and a touch of flair.
-
-## 📬 Contact
-Have questions or want to collaborate?
-
-📧 Email: me@owdenmagnusen.com
-📸 Instagram: @imowdenmag
-🌍 Portfolio: owdenmagnusen.com
+### Contact
+Email: me@owdenmagnusen.com
+Portfoilio: owdenmagnusen.com
+LinkedIn: https://www.linkedin.com/in/imowdenmag/
