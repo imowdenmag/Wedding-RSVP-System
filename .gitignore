@@ -1,15 +1,26 @@
-# Ignore environment files
-
+# Ignore Google Cloud Platform configuration files
+iamadinkra-ff3a4-65cdad8107d1.json
+iamadinkra-ff3a4-864ca2842b01.json
+iamadinkra-ff3a4-firebase-adminsdk-zt74q-eacb9796ce.json
 
 # Ignore Docker-related files
+docker-compose.yml
 
+# Ignore environment files
+.env
 
-# Ignore Google Cloud API credentials
-
+# Ignore Python virtual environment
+venv/
 
 # Ignore log files
 logs/
 *.log
 
-# Ignore Docker container volumes
+# Ignore vscode settings
+.vscode/
 
+#Ignore dockerignore files
+.dockerignore
+
+#Ignore macos
+.DS_Store
