@@ -1,4 +1,4 @@
-# 💍 Wedding RSVP & Check-In System
+#  Wedding RSVP & Check-In System
 
 A modern web application for managing RSVPs and check-ins at weddings and events. This system is optimized for speed, usability, and elegance, making guest handling seamless both before and during the event.
 
