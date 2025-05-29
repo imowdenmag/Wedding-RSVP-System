@@ -24,3 +24,6 @@ logs/
 
 #Ignore macos
 .DS_Store
+
+# Ignore images and media files
+static/images/
